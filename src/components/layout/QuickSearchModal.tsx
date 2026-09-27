@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ViewType, StreamType } from '../../types';
 import { useContent } from '../../context/ContentContext';
+import { useLanguage } from '../../i18n/LanguageContext';
 import {
   Search,
   X,
@@ -30,6 +31,9 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
   currentStream,
 }) => {
   const { subjects, chapters, bacExams } = useContent();
+  const { language, isRTL, t, getLocalizedText } = useLanguage();
+  const isArabic = language === 'ar';
+  const isEn = language === 'en';
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -46,13 +50,13 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
   const normalizedQuery = query.toLowerCase().trim();
 
   const quickNavigations: { title: string; view: ViewType; icon: React.ElementType }[] = [
-    { title: 'Tableau de bord', view: 'dashboard', icon: LayoutDashboard },
-    { title: 'Toutes les matières', view: 'subjects', icon: BookOpen },
-    { title: 'Sujets & Annales BAC', view: 'bac-exams', icon: FileCheck2 },
-    { title: 'Quiz & Évaluations', view: 'quiz', icon: HelpCircle },
-    { title: 'Planning de révision', view: 'planner', icon: CalendarDays },
-    { title: 'Assistant IA', view: 'ai-assistant', icon: Sparkles },
-    { title: 'Espace Admin (Gestion)', view: 'admin', icon: BookOpen },
+    { title: t.nav.dashboard, view: 'dashboard', icon: LayoutDashboard },
+    { title: t.nav.subjects, view: 'subjects', icon: BookOpen },
+    { title: t.nav.bac, view: 'bac-exams', icon: FileCheck2 },
+    { title: t.nav.quiz, view: 'quiz', icon: HelpCircle },
+    { title: t.nav.planner, view: 'planner', icon: CalendarDays },
+    { title: t.nav.ai, view: 'ai-assistant', icon: Sparkles },
+    { title: isArabic ? 'إدارة المنصة (CMS)' : (isEn ? 'Admin Panel (CMS)' : 'Espace Admin (Gestion)'), view: 'admin', icon: BookOpen },
   ];
 
   const filteredSubjects = subjects
@@ -73,7 +77,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-slate-900/60 dark:bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-slate-900/60 dark:bg-black/80 backdrop-blur-md animate-in fade-in duration-150" dir={isRTL ? 'rtl' : 'ltr'}>
       <div
         className="w-full max-w-2xl rounded-2xl bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden transition-colors"
         onClick={(e) => e.stopPropagation()}
@@ -86,7 +90,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher une matière, un chapitre, un sujet BAC..."
+            placeholder={isArabic ? 'بحث عن مادة، وحدة، موضوع بكالوريا...' : (isEn ? 'Search for a subject, chapter, BAC past exam...' : 'Rechercher une matière, un chapitre, un sujet BAC...')}
             className="w-full bg-transparent border-none text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-0"
           />
           {query && (
@@ -101,7 +105,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
             onClick={onClose}
             className="ms-2 px-2 py-1 text-xs rounded bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer"
           >
-            Échap
+            {isArabic ? 'خروج' : (isEn ? 'Esc' : 'Échap')}
           </button>
         </div>
 
@@ -111,7 +115,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
           {query.trim() === '' && (
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2 mb-2">
-                Raccourcis rapides
+                {isArabic ? 'اختصارات سريعة' : (isEn ? 'Quick Shortcuts' : 'Raccourcis rapides')}
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {quickNavigations.map((item) => {
@@ -138,7 +142,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
           {filteredSubjects.length > 0 && (
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2 mb-1.5">
-                Matières ({currentStream === 'sciences_experimentales' ? 'Sciences Exp.' : 'Maths'})
+                {isArabic ? 'المواد الدراسية' : (isEn ? 'Subjects' : 'Matières')} ({currentStream === 'sciences_experimentales' ? (isArabic ? 'علوم تجريبية' : (isEn ? 'Exp. Sci.' : 'Sciences Exp.')) : (isArabic ? 'رياضيات' : (isEn ? 'Math' : 'Maths'))})
               </div>
               <div className="space-y-1">
                 {filteredSubjects.map((sub) => (
@@ -155,20 +159,20 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                         className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
                         style={{ backgroundColor: `${sub.color}20`, color: sub.color }}
                       >
-                        {sub.name.slice(0, 2)}
+                        {isArabic ? sub.arabicName.slice(0, 2) : sub.name.slice(0, 2)}
                       </div>
                       <div>
                         <div className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                          {sub.name}
+                          {isArabic ? sub.arabicName : getLocalizedText(sub.name)}
                         </div>
                         <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                          Coeff : {sub.coefficient[currentStream]} • {sub.arabicName}
+                          {isArabic ? `معامل : ${sub.coefficient[currentStream]}` : `Coeff : ${sub.coefficient[currentStream]}`} • {isArabic ? sub.name : sub.arabicName}
                         </div>
                       </div>
                     </div>
                     <span className="text-xs text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
-                      <span>Ouvrir</span>
-                      <ArrowRight className="w-3 h-3" />
+                      <span>{isArabic ? 'فتح' : (isEn ? 'Open' : 'Ouvrir')}</span>
+                      <ArrowRight className={`w-3 h-3 ${isRTL ? 'rotate-180' : ''}`} />
                     </span>
                   </button>
                 ))}
@@ -180,7 +184,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
           {filteredChapters.length > 0 && (
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2 mb-1.5">
-                Chapitres
+                {isArabic ? 'الوحدات والدروس' : (isEn ? 'Chapters' : 'Chapitres')}
               </div>
               <div className="space-y-1">
                 {filteredChapters.map((ch) => (
@@ -200,7 +204,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                         {ch.title}
                       </span>
                     </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                    <ArrowRight className={`w-3.5 h-3.5 text-slate-400 ${isRTL ? 'rotate-180' : ''}`} />
                   </button>
                 ))}
               </div>
@@ -211,7 +215,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
           {filteredExams.length > 0 && (
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2 mb-1.5">
-                Annales & Sujets BAC
+                {isArabic ? 'حوليات ومواضيع البكالوريا' : (isEn ? 'BAC Past Exams' : 'Annales & Sujets BAC')}
               </div>
               <div className="space-y-1">
                 {filteredExams.map((exam) => (
@@ -230,7 +234,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                       </div>
                     </div>
                     <span className="text-xs text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform">
-                      Consulter →
+                      {isArabic ? 'عرض ←' : (isEn ? 'View →' : 'Consulter →')}
                     </span>
                   </button>
                 ))}
@@ -243,9 +247,9 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
             filteredChapters.length === 0 &&
             filteredExams.length === 0 && (
               <div className="p-8 text-center text-slate-400 dark:text-slate-500">
-                <p>Aucun résultat trouvé pour "{query}".</p>
+                <p>{isArabic ? `لم يتم العثور على أي نتائج لـ "${query}".` : (isEn ? `No results found for "${query}".` : `Aucun résultat trouvé pour "${query}".`)}</p>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Essaie un autre terme (ex: Mathématiques, BAC 2025, Dérivées...)
+                  {isArabic ? 'جرب البحث باسم مادة أو مصطلح آخر (مثل: الرياضيات، بكالوريا 2025...)' : (isEn ? 'Try another keyword (e.g., Mathematics, BAC 2025, Derivatives...)' : 'Essaie un autre terme (ex: Mathématiques, BAC 2025, Dérivées...)')}
                 </p>
               </div>
             )}
@@ -254,3 +258,4 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
     </div>
   );
 };
+

@@ -15,30 +15,30 @@ export const MobileNav: React.FC<MobileNavProps> = ({ currentView, onNavigate })
   const navTabs: { id: ViewType; label: string; icon: React.ElementType; matchViews?: ViewType[] }[] = [
     {
       id: 'dashboard',
-      label: isArabic ? 'الرئيسية' : 'Accueil',
+      label: isArabic ? 'الرئيسية' : (language === 'en' ? 'Home' : 'Accueil'),
       icon: Home,
     },
     {
       id: 'subjects',
-      label: isArabic ? 'المواد' : 'Matières',
+      label: isArabic ? 'المواد' : (language === 'en' ? 'Subjects' : 'Matières'),
       icon: BookOpen,
       matchViews: ['subjects', 'subject-detail', 'lessons', 'lesson'],
     },
     {
       id: 'exercises',
-      label: isArabic ? 'التمارين' : 'Exercices',
+      label: isArabic ? 'التمارين' : (language === 'en' ? 'Exercises' : 'Exercices'),
       icon: FileCheck2,
       matchViews: ['exercises'],
     },
     {
       id: 'bac-exams',
-      label: isArabic ? 'البكالوريا' : 'BAC',
+      label: isArabic ? 'البكالوريا' : (language === 'en' ? 'BAC' : 'BAC'),
       icon: BookmarkCheck,
       matchViews: ['bac-exams'],
     },
     {
       id: 'profile',
-      label: isArabic ? 'حسابي' : 'Profil',
+      label: isArabic ? 'حسابي' : (language === 'en' ? 'Profile' : 'Profil'),
       icon: User,
       matchViews: ['profile'],
     },

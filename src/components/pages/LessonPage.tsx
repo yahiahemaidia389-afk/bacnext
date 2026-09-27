@@ -49,12 +49,12 @@ export const LessonPage: React.FC<LessonPageProps> = ({
           className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-          <span>{isArabic ? 'العودة إلى الدروس' : 'Retour aux cours'}</span>
+          <span>{isArabic ? 'العودة إلى الدروس' : (language === 'en' ? 'Back to lessons' : 'Retour aux cours')}</span>
         </button>
 
         <EmptyState
-          title={isArabic ? 'لا توجد دروس متوفرة حالياً' : 'Aucun cours disponible pour le moment'}
-          description={isArabic ? 'سيتم نشر الدروس قريباً.' : 'Les cours seront publiés prochainement.'}
+          title={isArabic ? 'لا توجد دروس متوفرة حالياً' : (language === 'en' ? 'No lessons available currently' : 'Aucun cours disponible pour le moment')}
+          description={isArabic ? 'سيتم نشر الدروس قريباً.' : (language === 'en' ? 'Lessons will be published soon.' : 'Les cours seront publiés prochainement.')}
           icon="book"
           showAdminAction={role === 'admin'}
           onAdminAction={() => onNavigate('admin')}
@@ -74,7 +74,7 @@ export const LessonPage: React.FC<LessonPageProps> = ({
           <button
             onClick={() => onNavigate('lessons')}
             className="p-2 rounded-xl bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs cursor-pointer"
-            title={isArabic ? 'رجوع' : 'Retour'}
+            title={isArabic ? 'رجوع' : (language === 'en' ? 'Back' : 'Retour')}
           >
             <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
           </button>
@@ -106,8 +106,8 @@ export const LessonPage: React.FC<LessonPageProps> = ({
           <CheckCircle2 className={`w-4 h-4 ${currentLesson.isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`} />
           <span>
             {currentLesson.isCompleted
-              ? (isArabic ? 'مكتمل بنجاح' : 'Cours terminé')
-              : (isArabic ? 'تحديد كمكتمل' : 'Marquer comme terminé')}
+              ? (isArabic ? 'مكتمل بنجاح' : (language === 'en' ? 'Completed lesson' : 'Cours terminé'))
+              : (isArabic ? 'تحديد كمكتمل' : (language === 'en' ? 'Mark as completed' : 'Marquer comme terminé'))}
           </span>
         </button>
       </div>
@@ -133,13 +133,13 @@ export const LessonPage: React.FC<LessonPageProps> = ({
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">
-                  {isArabic ? 'محتوى الدرس' : 'Contenu du cours'}
+                  {isArabic ? 'محتوى الدرس' : (language === 'en' ? 'Lesson content' : 'Contenu du cours')}
                 </h2>
               </div>
               {currentLesson.estimatedMinutes && (
                 <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>{currentLesson.estimatedMinutes} {isArabic ? 'دقيقة' : 'min'}</span>
+                  <span>{currentLesson.estimatedMinutes} {isArabic ? 'دقيقة' : (language === 'en' ? 'min' : 'min')}</span>
                 </div>
               )}
             </div>
@@ -169,7 +169,7 @@ export const LessonPage: React.FC<LessonPageProps> = ({
           <div className="rounded-3xl p-6 bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <span>{isArabic ? 'ملفات ومستندات' : 'Documents associés'}</span>
+              <span>{isArabic ? 'ملفات ومستندات' : (language === 'en' ? 'Associated documents' : 'Documents associés')}</span>
             </h3>
 
             {currentLesson.pdfUrl ? (
@@ -181,13 +181,13 @@ export const LessonPage: React.FC<LessonPageProps> = ({
               >
                 <div className="flex items-center gap-2">
                   <Download className="w-4 h-4" />
-                  <span>{isArabic ? 'تحميل الدرس (PDF)' : 'Support de cours (PDF)'}</span>
+                  <span>{isArabic ? 'تحميل الدرس (PDF)' : (language === 'en' ? 'Lesson Notes (PDF)' : 'Support de cours (PDF)')}</span>
                 </div>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             ) : (
               <div className="p-4 text-center rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-xs">
-                {isArabic ? 'لا توجد ملفات مرفقة إضافية.' : 'Aucun document attaché.'}
+                {isArabic ? 'لا توجد ملفات مرفقة إضافية.' : (language === 'en' ? 'No attached documents.' : 'Aucun document attaché.')}
               </div>
             )}
           </div>
@@ -195,18 +195,18 @@ export const LessonPage: React.FC<LessonPageProps> = ({
           {/* Quick link to practice */}
           <div className="rounded-3xl p-6 bg-linear-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 border border-emerald-200 dark:border-emerald-800/60 space-y-3">
             <h4 className="text-sm font-bold text-emerald-950 dark:text-emerald-200">
-              {isArabic ? 'تطبيق عملي' : 'Entraînement'}
+              {isArabic ? 'تطبيق عملي' : (language === 'en' ? 'Practice' : 'Entraînement')}
             </h4>
             <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">
               {isArabic
                 ? 'طبق ما تعلمته الآن بحل تمارين تطبيقية متدرجة في هذا الفصل.'
-                : 'Consolide tes acquis en faisant des exercices sur ce chapitre.'}
+                : (language === 'en' ? 'Consolidate your learning by practicing exercises on this chapter.' : 'Consolide tes acquis en faisant des exercices sur ce chapitre.')}
             </p>
             <button
               onClick={() => onNavigate('exercises')}
               className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
-              <span>{isArabic ? 'الذهاب إلى التمارين' : 'Voir les exercices'}</span>
+              <span>{isArabic ? 'الذهاب إلى التمارين' : (language === 'en' ? 'Go to exercises' : 'Voir les exercices')}</span>
               <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
             </button>
           </div>

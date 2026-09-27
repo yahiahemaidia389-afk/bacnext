@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 interface BrandLogoProps {
   className?: string;
@@ -12,6 +13,8 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   size = 'md',
   showTagline = false,
 }) => {
+  const { t } = useLanguage();
+
   const iconDimensions = {
     sm: 'w-7 h-7',
     md: 'w-8 h-8',
@@ -62,7 +65,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       <div className="flex flex-col">
         <div className="flex items-center gap-1.5 leading-none">
           <span className={`font-extrabold tracking-tight text-slate-900 dark:text-white ${textDimensions}`}>
-            Bac<span className="text-blue-600 dark:text-blue-400">Next</span>
+            EOS <span className="text-blue-600 dark:text-blue-400">BAC</span>
           </span>
           <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 border border-blue-200/60 dark:border-blue-800/80 px-1.5 py-0.5 rounded-full font-mono">
             DZ
@@ -70,7 +73,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         </div>
         {showTagline && (
           <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 tracking-tight mt-1">
-            Plus qu'un site, une vraie préparation.
+            {t.common.tagline}
           </span>
         )}
       </div>

@@ -34,7 +34,7 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
 
   // New task form state
   const [newTitle, setNewTitle] = useState('');
-  const [newSubject, setNewSubject] = useState(isArabic ? 'الرياضيات' : 'Mathématiques');
+  const [newSubject, setNewSubject] = useState(isArabic ? 'الرياضيات' : (language === 'en' ? 'Mathematics' : 'Mathématiques'));
   const [newType, setNewType] = useState<Task['type']>('cours');
   const [newTime, setNewTime] = useState('45 min');
 
@@ -98,15 +98,15 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-semibold mb-2">
-            <span>{isArabic ? 'تنظيم دراسي دقيق للبكالوريا' : 'Organisation Rigoureuse BAC'}</span>
+            <span>{isArabic ? 'تنظيم دراسي دقيق للبكالوريا' : (language === 'en' ? 'Rigorous BAC Study Organization' : 'Organisation Rigoureuse BAC')}</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            {isArabic ? 'جدول المذاكرة' : 'Mon planning'}
+            {isArabic ? 'جدول المذاكرة' : (language === 'en' ? 'My Study Plan' : 'Mon planning')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base mt-1 font-medium">
             {isArabic
               ? 'نظّم أسبوعك الدراسي وحقق أهداف المراجعة اليومية باستمرار.'
-              : 'Structure ta semaine et atteins tes objectifs de révision quotidienne.'}
+              : (language === 'en' ? 'Structure your week and reach your daily study goals consistently.' : 'Structure ta semaine et atteins tes objectifs de révision quotidienne.')}
           </p>
         </div>
 
@@ -116,7 +116,7 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
           className="py-3 px-5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm shadow-blue-600/20 flex items-center justify-center gap-2 transition-all self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>{isArabic ? '+ إضافة مهمة' : '+ Ajouter une tâche'}</span>
+          <span>{isArabic ? '+ إضافة مهمة' : (language === 'en' ? '+ Add task' : '+ Ajouter une tâche')}</span>
         </button>
       </div>
 
@@ -125,15 +125,15 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-300 dark:text-emerald-400">
             <TrendingUp className="w-4 h-4 text-emerald-300 dark:text-emerald-400" />
-            <span>{isArabic ? 'نسبة الإنجاز الأسبوعي' : 'Taux de complétion hebdomadaire'}</span>
+            <span>{isArabic ? 'نسبة الإنجاز الأسبوعي' : (language === 'en' ? 'Weekly completion rate' : 'Taux de complétion hebdomadaire')}</span>
           </div>
           <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono">
-            {overallPercentage}% {isArabic ? 'مكتمل' : 'accompli'}
+            {overallPercentage}% {isArabic ? 'مكتمل' : (language === 'en' ? 'completed' : 'accompli')}
           </div>
           <p className="text-xs text-blue-100 dark:text-slate-300 font-medium">
             {isArabic
               ? `تم إنهاء ${completedTasksCount} من إجمالي ${totalTasksCount} مهمة بنجاح هذا الأسبوع`
-              : `${completedTasksCount} sur ${totalTasksCount} tâches terminées avec succès cette semaine`}
+              : (language === 'en' ? `${completedTasksCount} of ${totalTasksCount} tasks completed successfully this week` : `${completedTasksCount} sur ${totalTasksCount} tâches terminées avec succès cette semaine`)}
           </p>
         </div>
 
@@ -145,8 +145,8 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
             />
           </div>
           <div className="text-[11px] text-blue-100 dark:text-slate-300 flex justify-between font-mono font-medium">
-            <span>{isArabic ? 'الهدف: 100%' : 'Objectif : 100%'}</span>
-            <span>{completedTasksCount} {isArabic ? 'منجزة' : 'terminées'}</span>
+            <span>{isArabic ? 'الهدف: 100%' : (language === 'en' ? 'Goal: 100%' : 'Objectif : 100%')}</span>
+            <span>{completedTasksCount} {isArabic ? 'منجزة' : (language === 'en' ? 'completed' : 'terminées')}</span>
           </div>
         </div>
       </div>
@@ -181,7 +181,7 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
                   {tasksForDay.length}
                 </span>
                 <span className={`text-[10px] block -mt-1 font-medium ${isSelected ? 'text-blue-700 dark:text-indigo-300' : 'text-slate-400 dark:text-slate-500'}`}>
-                  {isArabic ? 'مهام' : 'tâches'}
+                  {isArabic ? 'مهام' : (language === 'en' ? 'tasks' : 'tâches')}
                 </span>
               </div>
 
@@ -212,11 +212,11 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
               {isArabic
                 ? 'حدّد المهام المكتملة لتحديث مؤشر التقدم اليومي فوراً.'
-                : 'Coche chaque tâche dès que tu as terminé pour actualiser ta progression.'}
+                : (language === 'en' ? 'Check each task as you complete it to update your progress.' : 'Coche chaque tâche dès que tu as terminé pour actualiser ta progression.')}
             </p>
           </div>
           <span className="text-xs font-mono font-semibold text-blue-700 dark:text-indigo-300 bg-blue-50 dark:bg-indigo-500/20 px-3 py-1 rounded-xl border border-blue-200 dark:border-indigo-500/30">
-            {dayTasks.filter((t) => t.completed).length} / {dayTasks.length} {isArabic ? 'منجزة' : 'terminées'}
+            {dayTasks.filter((t) => t.completed).length} / {dayTasks.length} {isArabic ? 'منجزة' : (language === 'en' ? 'completed' : 'terminées')}
           </span>
         </div>
 
@@ -283,7 +283,7 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
                 <button
                   onClick={() => deleteTask(task.id)}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                  title={isArabic ? 'حذف هذه المهمة' : 'Supprimer cette tâche'}
+                  title={isArabic ? 'حذف هذه المهمة' : (language === 'en' ? 'Delete this task' : 'Supprimer cette tâche')}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -295,7 +295,7 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
             <div className="p-8 text-center rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs font-medium">
               {isArabic
                 ? 'لا توجد مهام مضافة لهذا اليوم. يمكنك إضافة جلسة دراسة جديدة الآن!'
-                : 'Aucune tâche programmée pour ce jour. Profite-en pour ajouter une séance ou réviser !'}
+                : (language === 'en' ? 'No tasks scheduled for today. Take the opportunity to add a study session or review!' : 'Aucune tâche programmée pour ce jour. Profite-en pour ajouter une séance ou réviser !')}
             </div>
           )}
         </div>
@@ -307,7 +307,7 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
           <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                {isArabic ? 'إضافة مهمة إلى الجدول' : 'Ajouter une tâche au planning'}
+                {isArabic ? 'إضافة مهمة إلى الجدول' : (language === 'en' ? 'Add task to schedule' : 'Ajouter une tâche au planning')}
               </h3>
               <button
                 onClick={() => setIsAddModalOpen(false)}
@@ -320,13 +320,13 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
             <form onSubmit={handleAddTask} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {isArabic ? 'عنوان المهمة' : 'Intitulé de la tâche'}
+                  {isArabic ? 'عنوان المهمة' : (language === 'en' ? 'Task title' : 'Intitulé de la tâche')}
                 </label>
                 <input
                   type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder={isArabic ? 'مثال: حل 5 تمارين في الهندسة الفضائية' : "Ex: Résoudre 5 exercices de géométrie dans l'espace"}
+                  placeholder={isArabic ? 'مثال: حل 5 تمارين في الهندسة الفضائية' : (language === 'en' ? 'E.g.: Solve 5 solid geometry exercises' : "Ex: Résoudre 5 exercices de géométrie dans l'espace")}
                   className="w-full p-2.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                   required
                 />
@@ -335,37 +335,37 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {isArabic ? 'المادة' : 'Matière'}
+                    {isArabic ? 'المادة' : (language === 'en' ? 'Subject' : 'Matière')}
                   </label>
                   <select
                     value={newSubject}
                     onChange={(e) => setNewSubject(e.target.value)}
                     className="w-full p-2.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                   >
-                    <option value="Mathématiques">{isArabic ? 'الرياضيات' : 'Mathématiques'}</option>
-                    <option value="Physique-Chimie">{isArabic ? 'الفيزياء والكيمياء' : 'Physique-Chimie'}</option>
-                    <option value="SVT">{isArabic ? 'علوم الطبيعة والحياة' : 'SVT'}</option>
-                    <option value="Philosophie">{isArabic ? 'الفلسفة' : 'Philosophie'}</option>
-                    <option value="Arabe">{isArabic ? 'اللغة العربية' : 'Arabe'}</option>
-                    <option value="Français">{isArabic ? 'اللغة الفرنسية' : 'Français'}</option>
-                    <option value="Anglais">{isArabic ? 'اللغة الإنجليزية' : 'Anglais'}</option>
-                    <option value="Histoire-Géo">{isArabic ? 'التاريخ والجغرافيا' : 'Histoire-Géo'}</option>
+                    <option value="Mathématiques">{isArabic ? 'الرياضيات' : (language === 'en' ? 'Mathematics' : 'Mathématiques')}</option>
+                    <option value="Physique-Chimie">{isArabic ? 'الفيزياء والكيمياء' : (language === 'en' ? 'Physics & Chemistry' : 'Physique-Chimie')}</option>
+                    <option value="SVT">{isArabic ? 'علوم الطبيعة والحياة' : (language === 'en' ? 'Natural & Life Sciences' : 'SVT')}</option>
+                    <option value="Philosophie">{isArabic ? 'الفلسفة' : (language === 'en' ? 'Philosophy' : 'Philosophie')}</option>
+                    <option value="Arabe">{isArabic ? 'اللغة العربية' : (language === 'en' ? 'Arabic' : 'Arabe')}</option>
+                    <option value="Français">{isArabic ? 'اللغة الفرنسية' : (language === 'en' ? 'French' : 'Français')}</option>
+                    <option value="Anglais">{isArabic ? 'اللغة الإنجليزية' : (language === 'en' ? 'English' : 'Anglais')}</option>
+                    <option value="Histoire-Géo">{isArabic ? 'التاريخ والجغرافيا' : (language === 'en' ? 'History & Geography' : 'Histoire-Géo')}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {isArabic ? 'النوع' : 'Type'}
+                    {isArabic ? 'النوع' : (language === 'en' ? 'Type' : 'Type')}
                   </label>
                   <select
                     value={newType}
                     onChange={(e) => setNewType(e.target.value as Task['type'])}
                     className="w-full p-2.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                   >
-                    <option value="cours">{isArabic ? 'درس' : 'Cours'}</option>
-                    <option value="exercices">{isArabic ? 'تمارين' : 'Exercices'}</option>
-                    <option value="quiz">{isArabic ? 'اختبار سريع' : 'Quiz'}</option>
-                    <option value="revision">{isArabic ? 'مراجعة' : 'Révision'}</option>
+                    <option value="cours">{isArabic ? 'درس' : (language === 'en' ? 'Lessons' : 'Cours')}</option>
+                    <option value="exercices">{isArabic ? 'تمارين' : (language === 'en' ? 'Exercises' : 'Exercices')}</option>
+                    <option value="quiz">{isArabic ? 'اختبار سريع' : (language === 'en' ? 'Quiz' : 'Quiz')}</option>
+                    <option value="revision">{isArabic ? 'مراجعة' : (language === 'en' ? 'Revision' : 'Révision')}</option>
                   </select>
                 </div>
               </div>
@@ -373,7 +373,7 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {isArabic ? 'اليوم' : 'Jour'}
+                    {isArabic ? 'اليوم' : (language === 'en' ? 'Day' : 'Jour')}
                   </label>
                   <select
                     value={selectedDay}
@@ -390,7 +390,7 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {isArabic ? 'المدة المقدرة' : 'Durée estimée'}
+                    {isArabic ? 'المدة المقدرة' : (language === 'en' ? 'Estimated duration' : 'Durée estimée')}
                   </label>
                   <input
                     type="text"
@@ -408,13 +408,13 @@ export const StudyPlannerPage: React.FC<StudyPlannerPageProps> = ({
                   onClick={() => setIsAddModalOpen(false)}
                   className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                 >
-                  {isArabic ? 'إلغاء' : 'Annuler'}
+                  {isArabic ? 'إلغاء' : (language === 'en' ? 'Cancel' : 'Annuler')}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/30 transition-all cursor-pointer"
                 >
-                  {isArabic ? 'حفظ' : 'Enregistrer'}
+                  {isArabic ? 'حفظ' : (language === 'en' ? 'Save' : 'Enregistrer')}
                 </button>
               </div>
             </form>

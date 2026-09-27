@@ -58,8 +58,8 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
 
   const streamName =
     currentStream === 'sciences_experimentales'
-      ? (isArabic ? 'العلوم التجريبية' : 'Sciences Expérimentales')
-      : (isArabic ? 'الرياضيات' : 'Mathématiques');
+      ? (isArabic ? 'العلوم التجريبية' : (language === 'en' ? 'Experimental Sciences' : 'Sciences Expérimentales'))
+      : (isArabic ? 'الرياضيات' : (language === 'en' ? 'Mathematics' : 'Mathématiques'));
 
   const subjectName = isArabic ? subject.arabicName : subject.name;
 
@@ -71,7 +71,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
           onClick={() => onNavigate('dashboard')}
           className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
         >
-          {isArabic ? 'الرئيسية' : 'Accueil'}
+          {isArabic ? 'الرئيسية' : (language === 'en' ? 'Home' : 'Accueil')}
         </button>
         <span>/</span>
         <span className="font-semibold text-slate-700 dark:text-slate-300">
@@ -88,7 +88,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
         <div className="space-y-2">
           <div className="flex items-center gap-2.5">
             <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-              {isArabic ? `معامل ${coeff}` : `Coefficient ${coeff}`}
+              {isArabic ? `معامل ${coeff}` : (language === 'en' ? `Coefficient ${coeff}` : `Coefficient ${coeff}`)}
             </span>
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
               {streamName}
@@ -102,7 +102,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
           <p className="text-sm text-slate-600 dark:text-slate-400">
             {isArabic
               ? 'تصفح الدروس والتمارين والملخصات ومواضيع البكالوريا الخاصة بهذه المادة.'
-              : 'Accède aux cours, exercices, résumés et sujets du BAC pour cette matière.'}
+              : (language === 'en' ? 'Access lessons, exercises, summaries, and BAC past exams for this subject.' : 'Accède aux cours, exercices, résumés et sujets du BAC pour cette matière.')}
           </p>
         </div>
 
@@ -112,7 +112,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
               onClick={() => onNavigate('lesson', { lessonId: subjectLessons[0].id })}
               className="py-3 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-sm shadow-blue-600/20 flex items-center gap-2 transition-all cursor-pointer"
             >
-              <span>{isArabic ? 'ابدأ بالدرس الأول' : 'Commencer le 1er cours'}</span>
+              <span>{isArabic ? 'ابدأ بالدرس الأول' : (language === 'en' ? 'Start the first lesson' : 'Commencer le 1er cours')}</span>
               <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
             </button>
           </div>
@@ -130,7 +130,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
           }`}
         >
           <BookOpen className="w-4 h-4" />
-          <span>{isArabic ? 'الدروس' : 'Cours'} ({subjectLessons.length})</span>
+          <span>{isArabic ? 'الدروس' : (language === 'en' ? 'Lessons' : 'Cours')} ({subjectLessons.length})</span>
         </button>
 
         <button
@@ -142,7 +142,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
           }`}
         >
           <FileCheck2 className="w-4 h-4" />
-          <span>{isArabic ? 'التمارين' : 'Exercices'} ({subjectExercises.length})</span>
+          <span>{isArabic ? 'التمارين' : (language === 'en' ? 'Exercises' : 'Exercices')} ({subjectExercises.length})</span>
         </button>
 
         <button
@@ -154,7 +154,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>{isArabic ? 'الملخصات' : 'Résumés'} ({subjectSummaries.length})</span>
+          <span>{isArabic ? 'الملخصات' : (language === 'en' ? 'Summaries' : 'Résumés')} ({subjectSummaries.length})</span>
         </button>
 
         <button
@@ -166,7 +166,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
           }`}
         >
           <BookmarkCheck className="w-4 h-4" />
-          <span>{isArabic ? 'مواضيع البكالوريا' : 'Sujets BAC'} ({subjectBacExams.length})</span>
+          <span>{isArabic ? 'مواضيع البكالوريا' : (language === 'en' ? 'BAC Exams' : 'Sujets BAC')} ({subjectBacExams.length})</span>
         </button>
       </div>
 
@@ -176,7 +176,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
         {activeContentType === 'lessons' && (
           <div className="space-y-3">
             {subjectLessons.length === 0 ? (
-              <EmptyState title={isArabic ? 'لا توجد دروس حالياً' : 'Aucun cours disponible'} icon="book" />
+              <EmptyState title={isArabic ? 'لا توجد دروس حالياً' : (language === 'en' ? 'No lessons available' : 'Aucun cours disponible')} icon="book" />
             ) : (
               subjectLessons.map((lesson) => (
                 <div
@@ -205,7 +205,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
                         {lesson.isCompleted && (
                           <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/60 flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" />
-                            <span>{isArabic ? 'مكتمل' : 'Terminé'}</span>
+                            <span>{isArabic ? 'مكتمل' : (language === 'en' ? 'Completed' : 'Terminé')}</span>
                           </span>
                         )}
                       </div>
@@ -218,7 +218,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
                       {lesson.estimatedMinutes && (
                         <div className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
                           <Clock className="w-3 h-3" />
-                          <span>{lesson.estimatedMinutes} {isArabic ? 'دقيقة قراءة' : 'min de lecture'}</span>
+                          <span>{lesson.estimatedMinutes} {isArabic ? 'دقيقة قراءة' : (language === 'en' ? 'min read' : 'min de lecture')}</span>
                         </div>
                       )}
                     </div>
@@ -228,7 +228,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
                     onClick={() => onNavigate('lesson', { lessonId: lesson.id })}
                     className="py-2 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 self-end sm:self-center cursor-pointer"
                   >
-                    <span>{isArabic ? 'فتح الدرس' : 'Lire'}</span>
+                    <span>{isArabic ? 'فتح الدرس' : (language === 'en' ? 'Read' : 'Lire')}</span>
                     <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
                   </button>
                 </div>
@@ -241,7 +241,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
         {activeContentType === 'exercises' && (
           <div className="space-y-3">
             {subjectExercises.length === 0 ? (
-              <EmptyState title={isArabic ? 'لا توجد تمارين حالياً' : 'Aucun exercice disponible'} icon="exercise" />
+              <EmptyState title={isArabic ? 'لا توجد تمارين حالياً' : (language === 'en' ? 'No exercises available' : 'Aucun exercice disponible')} icon="exercise" />
             ) : (
               subjectExercises.map((ex) => {
                 const isExpanded = expandedExerciseId === ex.id;
@@ -265,11 +265,11 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                              {ex.difficulty === 'easy' ? (isArabic ? 'سهل' : 'Facile') : ex.difficulty === 'medium' ? (isArabic ? 'متوسط' : 'Moyen') : (isArabic ? 'صعب' : 'Difficile')}
+                              {ex.difficulty === 'easy' ? (isArabic ? 'سهل' : (language === 'en' ? 'Easy' : 'Facile')) : ex.difficulty === 'medium' ? (isArabic ? 'متوسط' : (language === 'en' ? 'Medium' : 'Moyen')) : (isArabic ? 'صعب' : (language === 'en' ? 'Hard' : 'Difficile'))}
                             </span>
                             {ex.hasSolution && (
                               <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
-                                {isArabic ? 'مرفق بالحل' : 'Avec corrigé'}
+                                {isArabic ? 'مرفق بالحل' : (language === 'en' ? 'With solution' : 'Avec corrigé')}
                               </span>
                             )}
                           </div>
@@ -283,7 +283,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
                         onClick={() => setExpandedExerciseId(isExpanded ? null : ex.id)}
                         className="py-1.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1 self-end sm:self-center cursor-pointer"
                       >
-                        <span>{isExpanded ? (isArabic ? 'إخفاء' : 'Masquer') : (isArabic ? 'عرض التمرين' : 'Voir')}</span>
+                        <span>{isExpanded ? (isArabic ? 'إخفاء' : (language === 'en' ? 'Hide' : 'Masquer')) : (isArabic ? 'عرض التمرين' : (language === 'en' ? 'View' : 'Voir'))}</span>
                         {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                       </button>
                     </div>
@@ -296,7 +296,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
                         {ex.hasSolution && ex.solution && (
                           <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-sm text-slate-800 dark:text-slate-200 whitespace-pre-line">
                             <div className="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider mb-1">
-                              {isArabic ? 'الحل النموذجي:' : 'Corrigé type :'}
+                              {isArabic ? 'الحل النموذجي:' : (language === 'en' ? 'Model solution:' : 'Corrigé type :')}
                             </div>
                             {ex.solution}
                           </div>
@@ -315,7 +315,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {subjectSummaries.length === 0 ? (
               <div className="col-span-2">
-                <EmptyState title={isArabic ? 'لا توجد ملخصات حالياً' : 'Aucun résumé disponible'} icon="document" />
+                <EmptyState title={isArabic ? 'لا توجد ملخصات حالياً' : (language === 'en' ? 'No summaries available' : 'Aucun résumé disponible')} icon="document" />
               </div>
             ) : (
               subjectSummaries.map((sum) => (
@@ -325,7 +325,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
                 >
                   <div className="space-y-2">
                     <span className="text-[11px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 px-2 py-0.5 rounded border border-purple-200 dark:border-purple-800">
-                      {sum.chapter || (isArabic ? 'ملخص وحدة' : 'Fiche')}
+                      {sum.chapter || (isArabic ? 'ملخص وحدة' : (language === 'en' ? 'Unit summary' : 'Fiche'))}
                     </span>
                     <h3 className="text-base font-bold text-slate-900 dark:text-white">
                       {sum.title}
@@ -340,7 +340,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
                       onClick={() => onNavigate('summaries')}
                       className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 cursor-pointer"
                     >
-                      {isArabic ? 'قراءة الملخص الكامل' : 'Consulter le résumé'}
+                      {isArabic ? 'قراءة الملخص الكامل' : (language === 'en' ? 'Read full summary' : 'Consulter le résumé')}
                     </button>
                   </div>
                 </div>
@@ -353,7 +353,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
         {activeContentType === 'bac-exams' && (
           <div className="space-y-3">
             {subjectBacExams.length === 0 ? (
-              <EmptyState title={isArabic ? 'لا توجد مواضيع بكالوريا لهذه المادة حالياً' : 'Aucun sujet BAC pour cette matière'} icon="document" />
+              <EmptyState title={isArabic ? 'لا توجد مواضيع بكالوريا لهذه المادة حالياً' : (language === 'en' ? 'No BAC exams for this subject' : 'Aucun sujet BAC pour cette matière')} icon="document" />
             ) : (
               subjectBacExams.map((exam) => (
                 <div
@@ -380,7 +380,7 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
                       className="py-2 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <FileText className="w-3.5 h-3.5" />
-                      <span>{isArabic ? 'عرض الموضوع والحل' : 'Sujet & Corrigé'}</span>
+                      <span>{isArabic ? 'عرض الموضوع والحل' : (language === 'en' ? 'Exam & Solution' : 'Sujet & Corrigé')}</span>
                     </button>
                   </div>
                 </div>

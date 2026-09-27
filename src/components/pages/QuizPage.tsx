@@ -35,17 +35,17 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onNavigate }) => {
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
             <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {isArabic ? 'الاختبارات والتمارين التفاعلية' : 'Quiz & Entraînement'}
+              {isArabic ? 'الاختبارات والتمارين التفاعلية' : (language === 'en' ? 'Quiz & Practice' : 'Quiz & Entraînement')}
             </h1>
             <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-              {isArabic ? 'تقييم سريع للمكتسبات وتثبيت المفاهيم' : "Tests d'évaluation et validation des notions"}
+              {isArabic ? 'تقييم سريع للمكتسبات وتثبيت المفاهيم' : (language === 'en' ? "Quick skills test and concept reinforcement" : "Tests d'évaluation et validation des notions")}
             </p>
           </div>
           <button
             onClick={() => onNavigate('dashboard')}
             className="text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-semibold cursor-pointer"
           >
-            {isArabic ? 'خروج' : 'Quitter'}
+            {isArabic ? 'خروج' : (language === 'en' ? 'Exit' : 'Quitter')}
           </button>
         </div>
 
@@ -108,7 +108,7 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onNavigate }) => {
             <span>
               {isArabic
                 ? `سؤال ${currentQuestionIndex + 1} من ${publishedQuizzes.length}`
-                : `Question ${currentQuestionIndex + 1}/${publishedQuizzes.length}`}
+                : (language === 'en' ? `Question ${currentQuestionIndex + 1} of ${publishedQuizzes.length}` : `Question ${currentQuestionIndex + 1}/${publishedQuizzes.length}`)}
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-0.5">
@@ -120,7 +120,7 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onNavigate }) => {
           onClick={() => onNavigate('dashboard')}
           className="text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-semibold transition-colors cursor-pointer"
         >
-          {isArabic ? 'خروج' : 'Quitter'}
+          {isArabic ? 'خروج' : (language === 'en' ? 'Exit' : 'Quitter')}
         </button>
       </div>
 
@@ -183,7 +183,7 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onNavigate }) => {
             <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/60 text-xs text-indigo-950 dark:text-indigo-200 space-y-1">
               <div className="font-bold flex items-center gap-1.5 text-indigo-800 dark:text-indigo-300">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                <span>{isArabic ? 'الشرح والتوضيح:' : 'Explication :'}</span>
+                <span>{isArabic ? 'الشرح والتوضيح:' : (language === 'en' ? 'Explanation:' : 'Explication :')}</span>
               </div>
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{currentQuestion.explanation}</p>
             </div>
@@ -197,7 +197,7 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onNavigate }) => {
                 disabled={selectedOption === null}
                 className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition-colors cursor-pointer"
               >
-                {isArabic ? 'تأكيد الإجابة' : 'Valider la réponse'}
+                {isArabic ? 'تأكيد الإجابة' : (language === 'en' ? 'Submit answer' : 'Valider la réponse')}
               </button>
             ) : (
               <button
@@ -206,8 +206,8 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onNavigate }) => {
               >
                 <span>
                   {currentQuestionIndex + 1 < publishedQuizzes.length
-                    ? (isArabic ? 'السؤال التالي' : 'Question suivante')
-                    : (isArabic ? 'عرض النتائج' : 'Voir les résultats')}
+                    ? (isArabic ? 'السؤال التالي' : (language === 'en' ? 'Next question' : 'Question suivante'))
+                    : (isArabic ? 'عرض النتائج' : (language === 'en' ? 'View results' : 'Voir les résultats'))}
                 </span>
                 <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </button>
@@ -223,10 +223,10 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onNavigate }) => {
 
           <div>
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-              {isArabic ? 'اكتمل الاختبار!' : 'Quiz terminé !'}
+              {isArabic ? 'اكتمل الاختبار!' : (language === 'en' ? 'Quiz completed!' : 'Quiz terminé !')}
             </h2>
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
-              {isArabic ? 'نتيجتك:' : 'Ton score :'} <span className="font-mono text-slate-900 dark:text-white font-bold">{score} / {publishedQuizzes.length}</span>
+              {isArabic ? 'نتيجتك:' : (language === 'en' ? 'Your score:' : 'Ton score :')} <span className="font-mono text-slate-900 dark:text-white font-bold">{score} / {publishedQuizzes.length}</span>
             </p>
           </div>
 
@@ -236,13 +236,13 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onNavigate }) => {
               className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>{isArabic ? 'إعادة المحاولة' : 'Recommencer'}</span>
+              <span>{isArabic ? 'إعادة المحاولة' : (language === 'en' ? 'Try again' : 'Recommencer')}</span>
             </button>
             <button
               onClick={() => onNavigate('dashboard')}
               className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold cursor-pointer transition-colors"
             >
-              {isArabic ? 'العودة للوحة التحكم' : 'Retour au tableau de bord'}
+              {isArabic ? 'العودة للوحة التحكم' : (language === 'en' ? 'Back to Dashboard' : 'Retour au tableau de bord')}
             </button>
           </div>
         </div>

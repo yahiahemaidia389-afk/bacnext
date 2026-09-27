@@ -107,6 +107,21 @@ export interface TranslationSchema {
     invalidCredentials: string;
     emailExists: string;
     accessDeniedStudent: string;
+    forgotPassword: string;
+    forgotPasswordSubtitle: string;
+    resetPasswordBtn: string;
+    backToLogin: string;
+    resetEmailSent: string;
+    newPasswordLabel?: string;
+    confirmNewPasswordLabel?: string;
+    updatePasswordBtn?: string;
+    passwordUpdatedSuccess?: string;
+    verificationRequiredTitle?: string;
+    verificationRequiredDesc?: string;
+    resendVerificationBtn?: string;
+    verificationResentSuccess?: string;
+    cooldownWait?: string;
+    invalidOrExpiredLink?: string;
   };
   // Landing Page
   landing: {
@@ -360,5 +375,43 @@ export interface TranslationSchema {
     step3: string;
     // Empty state
     emptyList: string;
+  };
+  // Student First-Time Onboarding
+  onboarding: {
+    step1Welcome: string;
+    step1Subtitle: string;
+    step1StreamTitle: string;
+    step2DreamTitle: string;
+    step2DreamSubtitle: string;
+    dreamPlaceholder: string;
+    dreamDoctor: string;
+    dreamEngineer: string;
+    dreamMedicine: string;
+    dreamPilot: string;
+    dreamTeacher: string;
+    dreamBusiness: string;
+    dreamComputerScience: string;
+    dreamResearcher: string;
+    customDreamOption: string;
+    step3GoalTitle: string;
+    step3GoalSubtitle: string;
+    goalPlaceholder: string;
+    goalHighGrade: string;
+    goal16Plus: string;
+    goal17Plus: string;
+    goal18Plus: string;
+    goal19Plus: string;
+    goal20: string;
+    goalWeakSubjects: string;
+    goalConsistentPrep: string;
+    goalDreamUni: string;
+    customGoalOption: string;
+    targetScoreLabel: string;
+    studyFocusLabel: string;
+    step4ConfirmTitle: string;
+    step4ConfirmSubtitle: string;
+    step4CtaDashboard: string;
+    nextBtn: string;
+    backBtn: string;
   };
 }

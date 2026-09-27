@@ -55,45 +55,15 @@ export const SummariesPage: React.FC<SummariesPageProps> = ({
 
   const handlePrintOrDownload = (sum: Summary) => {
     if (sum.pdfUrl) {
-      window.open(sum.pdfUrl, '_blank');
+      const link = document.createElement('a');
+      link.href = sum.pdfUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.click();
       return;
     }
-    // Simple printable trigger
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html dir="${isRTL ? 'rtl' : 'ltr'}">
-          <head>
-            <title>${sum.title} - BacNext</title>
-            <style>
-              body { font-family: system-ui, sans-serif; padding: 40px; color: #0f172a; line-height: 1.6; }
-              h1 { color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; }
-              .section { margin-top: 24px; padding: 16px; background: #f8fafc; border-radius: 8px; }
-              .formula { font-family: monospace; background: #e0f2fe; padding: 8px 12px; border-radius: 6px; display: inline-block; margin: 4px; }
-            </style>
-          </head>
-          <body>
-            <h1>${sum.title}</h1>
-            <p><strong>${isArabic ? 'الوحدة:' : 'Chapitre:'}</strong> ${sum.chapter || '-'}</p>
-            ${sum.keyPoints && sum.keyPoints.length > 0 ? `
-              <div class="section">
-                <h3>${isArabic ? 'أهم النقاط:' : 'Points Clés:'}</h3>
-                <ul>${sum.keyPoints.map(p => `<li>${p}</li>`).join('')}</ul>
-              </div>
-            ` : ''}
-            ${sum.formulas && sum.formulas.length > 0 ? `
-              <div class="section">
-                <h3>${isArabic ? 'القوانين الأساسية:' : 'Formules:'}</h3>
-                <div>${sum.formulas.map(f => `<div class="formula">${f}</div>`).join('')}</div>
-              </div>
-            ` : ''}
-            <div style="margin-top: 24px; white-space: pre-line;">${sum.content}</div>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
-    }
+    setActiveReadingSummary(sum);
+    // Allow reading modal to render and user can trigger print directly
   };
 
   return (
@@ -106,20 +76,20 @@ export const SummariesPage: React.FC<SummariesPageProps> = ({
               <FileText className="w-5 h-5" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              {isArabic ? 'الملخصات' : 'Résumés'}
+              {isArabic ? 'الملخصات' : (language === 'en' ? 'Summaries' : 'Résumés')}
             </h1>
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             {isArabic
               ? 'بطاقات مراجعة سريعة تجمع أهم القوانين والمفاهيم لكل مادة.'
-              : 'Fiches de révision condensées avec formules indispensables et points clés.'}
+              : (language === 'en' ? 'Condensed revision sheets with key formulas and essential points.' : 'Fiches de révision condensées avec formules indispensables et points clés.')}
           </p>
         </div>
 
         <div className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 self-start sm:self-center">
           {currentStream === 'sciences_experimentales'
-            ? (isArabic ? '🔬 علوم تجريبية' : '🔬 Sciences Exp.')
-            : (isArabic ? '📐 رياضيات' : '📐 Maths')}
+            ? (isArabic ? '🔬 علوم تجريبية' : (language === 'en' ? '🔬 Experimental Sciences' : '🔬 Sciences Exp.'))
+            : (isArabic ? '📐 رياضيات' : (language === 'en' ? '📐 Mathematics' : '📐 Maths'))}
         </div>
       </div>
 
@@ -132,7 +102,7 @@ export const SummariesPage: React.FC<SummariesPageProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={isArabic ? 'ابحث في الملخصات والقوانين...' : 'Rechercher un résumé ou une formule...'}
+            placeholder={isArabic ? 'ابحث في الملخصات والقوانين...' : (language === 'en' ? 'Search for a summary or formula...' : 'Rechercher un résumé ou une formule...')}
             className={`w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 focus:bg-white dark:focus:bg-slate-900 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all ${
               isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'
             }`}
@@ -149,7 +119,7 @@ export const SummariesPage: React.FC<SummariesPageProps> = ({
                 : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
             }`}
           >
-            {isArabic ? 'جميع المواد' : 'Toutes les matières'}
+            {isArabic ? 'جميع المواد' : (language === 'en' ? 'All subjects' : 'Toutes les matières')}
           </button>
           {activeSubjects.map((sub) => (
             <button
@@ -170,8 +140,8 @@ export const SummariesPage: React.FC<SummariesPageProps> = ({
       {/* Summaries list */}
       {filteredSummaries.length === 0 ? (
         <EmptyState
-          title={isArabic ? 'لا توجد ملخصات مطابقة' : 'Aucun résumé trouvé'}
-          description={isArabic ? 'جرب البحث باسم قانون أو وحدة أخرى.' : 'Essaie de rechercher une autre matière ou formule.'}
+          title={isArabic ? 'لا توجد ملخصات مطابقة' : (language === 'en' ? 'No summaries found' : 'Aucun résumé trouvé')}
+          description={isArabic ? 'جرب البحث باسم قانون أو وحدة أخرى.' : (language === 'en' ? 'Try searching for another subject or formula.' : 'Essaie de rechercher une autre matière ou formule.')}
           icon="document"
         />
       ) : (
@@ -206,7 +176,7 @@ export const SummariesPage: React.FC<SummariesPageProps> = ({
                   {sum.formulas && sum.formulas.length > 0 && (
                     <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800 space-y-1">
                       <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                        {isArabic ? 'قوانين رئيسية' : 'Formules clés'}
+                        {isArabic ? 'قوانين رئيسية' : (language === 'en' ? 'Key formulas' : 'Formules clés')}
                       </div>
                       <div className="flex flex-wrap gap-1.5 font-mono text-xs text-purple-700 dark:text-purple-300">
                         {sum.formulas.slice(0, 2).map((f, idx) => (
@@ -234,16 +204,16 @@ export const SummariesPage: React.FC<SummariesPageProps> = ({
                     className="py-2 px-3.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
                   >
                     <BookOpen className="w-3.5 h-3.5" />
-                    <span>{isArabic ? 'قراءة أونلاين' : 'Lire en ligne'}</span>
+                    <span>{isArabic ? 'قراءة أونلاين' : (language === 'en' ? 'Read online' : 'Lire en ligne')}</span>
                   </button>
 
                   <button
                     onClick={() => handlePrintOrDownload(sum)}
                     className="py-2 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
-                    title={isArabic ? 'تحميل أو طباعة الملخص' : 'Télécharger ou imprimer'}
+                    title={isArabic ? 'تحميل أو طباعة الملخص' : (language === 'en' ? 'Download or print summary' : 'Télécharger ou imprimer')}
                   >
                     <Download className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-                    <span>{isArabic ? 'تحميل PDF' : 'PDF'}</span>
+                    <span>{isArabic ? 'تحميل PDF' : (language === 'en' ? 'PDF' : 'PDF')}</span>
                   </button>
                 </div>
               </div>
@@ -260,7 +230,7 @@ export const SummariesPage: React.FC<SummariesPageProps> = ({
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
               <div>
                 <div className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
-                  {isArabic ? 'ملخص شامل للمراجعة' : 'Fiche de synthèse'}
+                  {isArabic ? 'ملخص شامل للمراجعة' : (language === 'en' ? 'Comprehensive revision summary' : 'Fiche de synthèse')}
                 </div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white mt-1">
                   {activeReadingSummary.title}
@@ -283,7 +253,7 @@ export const SummariesPage: React.FC<SummariesPageProps> = ({
               {activeReadingSummary.formulas && activeReadingSummary.formulas.length > 0 && (
                 <div className="p-4 rounded-2xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 space-y-2">
                   <div className="text-xs font-bold uppercase text-purple-900 dark:text-purple-200 tracking-wider">
-                    {isArabic ? 'القوانين والمعادلات الأساسية' : 'Formules Essentielles'}
+                    {isArabic ? 'القوانين والمعادلات الأساسية' : (language === 'en' ? 'Essential Formulas' : 'Formules Essentielles')}
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-xs">
                     {activeReadingSummary.formulas.map((form, idx) => (
@@ -299,7 +269,7 @@ export const SummariesPage: React.FC<SummariesPageProps> = ({
               {activeReadingSummary.keyPoints && activeReadingSummary.keyPoints.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="font-bold text-slate-900 dark:text-white">
-                    {isArabic ? 'النقاط التي يجب تذكرها:' : 'Points clés à retenir :'}
+                    {isArabic ? 'النقاط التي يجب تذكرها:' : (language === 'en' ? 'Key points to remember:' : 'Points clés à retenir :')}
                   </h4>
                   <ul className="space-y-1.5 list-disc list-inside text-slate-700 dark:text-slate-300">
                     {activeReadingSummary.keyPoints.map((pt, idx) => (
@@ -318,18 +288,18 @@ export const SummariesPage: React.FC<SummariesPageProps> = ({
             {/* Modal Footer */}
             <div className="p-4 bg-slate-50 dark:bg-slate-900/70 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <button
-                onClick={() => handlePrintOrDownload(activeReadingSummary)}
+                onClick={() => window.print()}
                 className="py-2 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" />
-                <span>{isArabic ? 'طباعة أو حفظ PDF' : 'Imprimer ou PDF'}</span>
+                <span>{isArabic ? 'طباعة أو حفظ PDF' : (language === 'en' ? 'Print or PDF' : 'Imprimer ou PDF')}</span>
               </button>
 
               <button
                 onClick={() => setActiveReadingSummary(null)}
                 className="py-2 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                {isArabic ? 'إغلاق' : 'Fermer'}
+                {isArabic ? 'إغلاق' : (language === 'en' ? 'Close' : 'Fermer')}
               </button>
             </div>
           </div>

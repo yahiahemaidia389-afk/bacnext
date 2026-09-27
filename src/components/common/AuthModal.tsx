@@ -2,7 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { StreamType, UserAccount } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { X, Check, ArrowRight, ShieldCheck, Mail, Lock, User, AlertCircle, Sparkles } from 'lucide-react';
+import {
+  X,
+  Check,
+  ArrowRight,
+  ShieldCheck,
+  Mail,
+  Lock,
+  User,
+  AlertCircle,
+  Sparkles,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  Loader2,
+  ArrowLeft,
+} from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 
 interface AuthModalProps {
@@ -20,17 +35,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   initialMode = 'login',
   defaultStream = 'sciences_experimentales',
 }) => {
-  const { login, signup, loginWithGoogle } = useAuth();
+  const { login, signup, resetPassword, loginWithGoogle } = useAuth();
   const { t, isRTL, language } = useLanguage();
   const isArabic = language === 'ar';
 
-  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>(initialMode);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [selectedStream, setSelectedStream] = useState<StreamType>(defaultStream);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleNotice, setGoogleNotice] = useState<string | null>(null);
@@ -39,11 +56,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     if (isOpen) {
       setMode(initialMode);
       setErrorMsg(null);
+      setSuccessMsg(null);
       setGoogleNotice(null);
-      if (initialMode === 'login' && !email) {
-        setEmail('admin@bacnext.dz');
-        setPassword('password123');
-      }
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setFullName('');
+      setShowPassword(false);
     }
   }, [isOpen, initialMode]);
 
@@ -52,27 +71,46 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setSuccessMsg(null);
     setGoogleNotice(null);
     setLoading(true);
 
     try {
+      if (mode === 'forgot') {
+        if (!email.trim()) {
+          setErrorMsg(isArabic ? 'يرجى إدخال البريد الإلكتروني.' : (language === 'en' ? 'Please enter your email address.' : 'Veuillez renseigner votre email.'));
+          setLoading(false);
+          return;
+        }
+        const res = await resetPassword(email.trim());
+        if (res.success) {
+          setSuccessMsg(t.auth.resetEmailSent);
+        } else {
+          setErrorMsg(res.error || t.auth.invalidCredentials);
+        }
+        setLoading(false);
+        return;
+      }
+
       if (mode === 'signup') {
-        // Validation: confirm password
+        if (!fullName.trim()) {
+          setErrorMsg(isArabic ? 'يرجى إدخال الاسم الكامل.' : (language === 'en' ? 'Please enter your full name.' : 'Veuillez renseigner votre nom complet.'));
+          setLoading(false);
+          return;
+        }
         if (password !== confirmPassword) {
           setErrorMsg(t.auth.passwordsDontMatch);
           setLoading(false);
           return;
         }
-
         if (password.length < 6) {
-          setErrorMsg(isArabic ? 'كلمة المرور يجب أن لا تقل عن 6 أحرف.' : 'Le mot de passe doit contenir au moins 6 caractères.');
+          setErrorMsg(isArabic ? 'كلمة المرور يجب أن لا تقل عن 6 أحرف.' : (language === 'en' ? 'Password must be at least 6 characters.' : 'Le mot de passe doit contenir au moins 6 caractères.'));
           setLoading(false);
           return;
         }
 
-        // Strict student registration only
         const result = await signup({
-          fullName: fullName.trim() || (isArabic ? 'تلميذ' : 'Élève'),
+          fullName: fullName.trim(),
           email: email.trim(),
           password,
           stream: selectedStream,
@@ -85,11 +123,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           return;
         }
 
+        if (result.requiresVerification) {
+          setSuccessMsg(
+            t.auth.verificationRequiredDesc ||
+              (isArabic
+                ? 'تم إرسال رسالة تأكيد إلى بريدك الإلكتروني. يرجى الضغط على الرابط لتفعيل حسابك.'
+                : language === 'en'
+                ? 'A confirmation email has been sent. Please click the link to activate your account.'
+                : 'Un email de confirmation vous a été envoyé. Veuillez cliquer sur le lien pour valider votre compte.')
+          );
+          setLoading(false);
+          return;
+        }
+
         if (result.user) {
           onSuccess(result.user);
         }
       } else {
         // Login mode
+        if (!email.trim() || !password) {
+          setErrorMsg(isArabic ? 'يرجى إدخال البريد الإلكتروني وكلمة المرور.' : (language === 'en' ? 'Please enter your email and password.' : 'Veuillez renseigner votre email et mot de passe.'));
+          setLoading(false);
+          return;
+        }
+
         const result = await login(email.trim(), password);
         if (!result.success) {
           setErrorMsg(result.error || t.auth.invalidCredentials);
@@ -112,6 +169,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleGoogleSignIn = async () => {
     setErrorMsg(null);
+    setSuccessMsg(null);
     setGoogleNotice(null);
     setGoogleLoading(true);
 
@@ -121,20 +179,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setGoogleNotice(res.error);
         setErrorMsg(res.error);
       }
-      // If success, Supabase redirects the browser directly to Google OAuth consent screen
     } catch (err: any) {
-      setErrorMsg(err.message || 'Erreur lors de la connexion Google');
+      setErrorMsg(err.message || (isArabic ? 'فشل تسجيل الدخول عبر Google' : (language === 'en' ? 'Google sign-in failed' : 'Erreur lors de la connexion Google')));
     } finally {
       setGoogleLoading(false);
     }
-  };
-
-  const fillQuickAccount = (quickEmail: string) => {
-    setEmail(quickEmail);
-    setPassword('password123');
-    setMode('login');
-    setErrorMsg(null);
-    setGoogleNotice(null);
   };
 
   return (
@@ -143,7 +192,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#131B2E] border border-[#E2E8F0] dark:border-slate-800 shadow-2xl p-6 sm:p-7 my-8 transition-colors">
+      <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 my-8 transition-colors">
         {/* Close Button */}
         <button
           id="auth-modal-close"
@@ -161,49 +210,76 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <div className="mb-5">
           <BrandLogo size="sm" showTagline={false} />
           <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-3.5">
-            {mode === 'signup' ? t.auth.signupTitle : t.auth.loginTitle}
+            {mode === 'forgot'
+              ? t.auth.forgotPassword
+              : mode === 'signup'
+              ? t.auth.signupTitle
+              : t.auth.loginTitle}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            {mode === 'signup' ? t.auth.signupSubtitle : t.auth.loginSubtitle}
+            {mode === 'forgot'
+              ? t.auth.forgotPasswordSubtitle
+              : mode === 'signup'
+              ? t.auth.signupSubtitle
+              : t.auth.loginSubtitle}
           </p>
         </div>
 
-        {/* Tab switch: Connexion vs Inscription */}
-        <div className="grid grid-cols-2 p-1 rounded-xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 mb-5">
-          <button
-            id="auth-tab-login"
-            type="button"
-            onClick={() => {
-              setMode('login');
-              setErrorMsg(null);
-              setGoogleNotice(null);
-            }}
-            className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              mode === 'login'
-                ? 'bg-white dark:bg-[#131B2E] text-slate-900 dark:text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            {t.nav.login}
-          </button>
+        {/* Tab switch (only in login or signup mode) */}
+        {mode !== 'forgot' ? (
+          <div className="grid grid-cols-2 p-1 rounded-xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 mb-5">
+            <button
+              id="auth-tab-login"
+              type="button"
+              onClick={() => {
+                setMode('login');
+                setErrorMsg(null);
+                setSuccessMsg(null);
+                setGoogleNotice(null);
+              }}
+              className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                mode === 'login'
+                  ? 'bg-white dark:bg-[#131B2E] text-slate-900 dark:text-white shadow-xs'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              {t.nav.login}
+            </button>
 
-          <button
-            id="auth-tab-signup"
-            type="button"
-            onClick={() => {
-              setMode('signup');
-              setErrorMsg(null);
-              setGoogleNotice(null);
-            }}
-            className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              mode === 'signup'
-                ? 'bg-white dark:bg-[#131B2E] text-slate-900 dark:text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            {t.nav.signup}
-          </button>
-        </div>
+            <button
+              id="auth-tab-signup"
+              type="button"
+              onClick={() => {
+                setMode('signup');
+                setErrorMsg(null);
+                setSuccessMsg(null);
+                setGoogleNotice(null);
+              }}
+              className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                mode === 'signup'
+                  ? 'bg-white dark:bg-[#131B2E] text-slate-900 dark:text-white shadow-xs'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              {t.nav.signup}
+            </button>
+          </div>
+        ) : (
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={() => {
+                setMode('login');
+                setErrorMsg(null);
+                setSuccessMsg(null);
+              }}
+              className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1.5 cursor-pointer"
+            >
+              <ArrowLeft className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
+              <span>{t.auth.backToLogin}</span>
+            </button>
+          </div>
+        )}
 
         {/* Error Alert */}
         {errorMsg && (
@@ -213,24 +289,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         )}
 
-        {/* Google Configuration Notice Helper (if Supabase credentials or provider are missing) */}
+        {/* Success Alert */}
+        {successMsg && (
+          <div className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-emerald-800 dark:text-emerald-300 text-xs flex items-center gap-2.5">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <span>{successMsg}</span>
+          </div>
+        )}
+
+        {/* Google Configuration Notice Helper */}
         {googleNotice && (
           <div className="mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-900 dark:text-amber-200 text-xs space-y-1">
             <div className="flex items-start gap-2">
               <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-              <div>
-                <div className="font-bold">
-                  {isArabic ? 'تنبيه إعدادات Google OAuth في Supabase:' : 'Info Supabase Google OAuth :'}
-                </div>
-                <div className="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5 leading-relaxed">
-                  {googleNotice}
-                </div>
-              </div>
+              <span>{googleNotice}</span>
+            </div>
+            <div className="text-[10px] text-amber-800/80 dark:text-amber-300/80">
+              {t.auth.googleConfigHelp}
             </div>
           </div>
         )}
 
-        {/* Form */}
+        {/* Authentication Form */}
         <form onSubmit={handleSubmit} className="space-y-3.5">
           {/* REGISTER: Full Name */}
           {mode === 'signup' && (
@@ -245,12 +325,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   }`}
                 />
                 <input
-                  id="auth-input-name"
+                  id="auth-input-fullname"
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder={t.auth.fullNamePlaceholder}
-                  className={`w-full py-2 text-xs sm:text-sm rounded-xl bg-[#F8FAFC] dark:bg-slate-900/80 border border-[#E2E8F0] dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all ${
+                  className={`w-full py-2.5 text-xs sm:text-sm rounded-xl bg-[#F8FAFC] dark:bg-slate-900/80 border border-[#E2E8F0] dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all ${
                     isRTL ? 'pr-9 pl-3 text-right' : 'pl-9 pr-3 text-left'
                   }`}
                   required
@@ -276,7 +356,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t.auth.emailPlaceholder}
-                className={`w-full py-2 text-xs sm:text-sm rounded-xl bg-[#F8FAFC] dark:bg-slate-900/80 border border-[#E2E8F0] dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all ${
+                className={`w-full py-2.5 text-xs sm:text-sm rounded-xl bg-[#F8FAFC] dark:bg-slate-900/80 border border-[#E2E8F0] dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all ${
                   isRTL ? 'pr-9 pl-3 text-right' : 'pl-9 pr-3 text-left'
                 }`}
                 required
@@ -284,30 +364,57 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           </div>
 
-          {/* Password */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-              {t.auth.password}
-            </label>
-            <div className="relative">
-              <Lock
-                className={`w-4 h-4 text-slate-400 dark:text-slate-500 absolute top-3 ${
-                  isRTL ? 'right-3' : 'left-3'
-                }`}
-              />
-              <input
-                id="auth-input-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t.auth.passwordPlaceholder}
-                className={`w-full py-2 text-xs sm:text-sm rounded-xl bg-[#F8FAFC] dark:bg-slate-900/80 border border-[#E2E8F0] dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all ${
-                  isRTL ? 'pr-9 pl-3 text-right' : 'pl-9 pr-3 text-left'
-                }`}
-                required
-              />
+          {/* Password (for login and signup) */}
+          {mode !== 'forgot' && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  {t.auth.password}
+                </label>
+                {mode === 'login' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('forgot');
+                      setErrorMsg(null);
+                      setSuccessMsg(null);
+                    }}
+                    className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                  >
+                    {t.auth.forgotPassword}
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <Lock
+                  className={`w-4 h-4 text-slate-400 dark:text-slate-500 absolute top-3 ${
+                    isRTL ? 'right-3' : 'left-3'
+                  }`}
+                />
+                <input
+                  id="auth-input-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t.auth.passwordPlaceholder}
+                  className={`w-full py-2.5 text-xs sm:text-sm rounded-xl bg-[#F8FAFC] dark:bg-slate-900/80 border border-[#E2E8F0] dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all ${
+                    isRTL ? 'pr-9 pl-10 text-right' : 'pl-9 pr-10 text-left'
+                  }`}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className={`absolute top-2.5 ${
+                    isRTL ? 'left-3' : 'right-3'
+                  } text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer`}
+                  aria-label={showPassword ? 'Masquer' : 'Afficher'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* REGISTER: Confirm Password */}
           {mode === 'signup' && (
@@ -323,11 +430,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 />
                 <input
                   id="auth-input-confirm-password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder={t.auth.confirmPassword}
-                  className={`w-full py-2 text-xs sm:text-sm rounded-xl bg-[#F8FAFC] dark:bg-slate-900/80 border border-[#E2E8F0] dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all ${
+                  className={`w-full py-2.5 text-xs sm:text-sm rounded-xl bg-[#F8FAFC] dark:bg-slate-900/80 border border-[#E2E8F0] dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all ${
                     isRTL ? 'pr-9 pl-3 text-right' : 'pl-9 pr-3 text-left'
                   }`}
                   required
@@ -400,131 +507,121 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           )}
 
-          {/* Primary Submit Button: [ Se connecter ] or [ Créer mon compte ] */}
+          {/* Primary Submit Button */}
           <button
             id="auth-submit-btn"
             type="submit"
             disabled={loading}
-            className="w-full mt-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
+            className="w-full mt-2 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
           >
-            <span>
-              {loading
-                ? t.common.loading
-                : mode === 'signup'
-                ? t.auth.signupBtn
-                : t.auth.loginBtn}
-            </span>
-            <ArrowRight
-              className={`w-4 h-4 ${
-                isRTL ? 'rotate-180' : ''
-              }`}
-            />
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <span>
+                  {mode === 'forgot'
+                    ? t.auth.resetPasswordBtn
+                    : mode === 'signup'
+                    ? t.auth.signupBtn
+                    : t.auth.loginBtn}
+                </span>
+                <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+              </>
+            )}
           </button>
         </form>
 
-        {/* OR / OU / أو Divider */}
-        <div className="relative my-4 flex items-center justify-center">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200 dark:border-slate-700" />
-          </div>
-          <div className="relative px-3 bg-white dark:bg-[#131B2E] text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-            {t.auth.orDivider}
-          </div>
-        </div>
+        {/* OR / Google (Only in login or signup mode) */}
+        {mode !== 'forgot' && (
+          <>
+            {/* Divider */}
+            <div className="relative my-4 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200 dark:border-slate-700" />
+              </div>
+              <div className="relative px-3 bg-white dark:bg-[#131B2E] text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                {t.auth.orDivider}
+              </div>
+            </div>
 
-        {/* [ Continue with Google ] Button */}
-        <button
-          id="google-login-btn"
-          type="button"
-          disabled={googleLoading}
-          onClick={handleGoogleSignIn}
-          className="w-full py-2.5 px-4 rounded-xl bg-white dark:bg-slate-900/80 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:border-slate-400 active:scale-[0.99] text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm shadow-xs flex items-center justify-center gap-3 transition-all cursor-pointer disabled:opacity-60"
-        >
-          {/* Official Google 'G' multicolor SVG icon */}
-          <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" viewBox="0 0 24 24">
-            <path
-              fill="#4285F4"
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            />
-            <path
-              fill="#34A853"
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            />
-            <path
-              fill="#FBBC05"
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-            />
-            <path
-              fill="#EA4335"
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-            />
-          </svg>
-          <span>{t.auth.continueWithGoogle}</span>
-        </button>
-
-        {/* Switch Link between Login & Register */}
-        <div className="mt-4 text-center">
-          {mode === 'login' ? (
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {t.auth.switchSignupPrompt}{' '}
-              <button
-                type="button"
-                id="switch-to-signup-link"
-                onClick={() => {
-                  setMode('signup');
-                  setErrorMsg(null);
-                  setGoogleNotice(null);
-                }}
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline cursor-pointer"
-              >
-                {t.auth.switchSignupLink}
-              </button>
-            </p>
-          ) : (
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {t.auth.switchLoginPrompt}{' '}
-              <button
-                type="button"
-                id="switch-to-login-link"
-                onClick={() => {
-                  setMode('login');
-                  setErrorMsg(null);
-                  setGoogleNotice(null);
-                }}
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline cursor-pointer"
-              >
-                {t.auth.switchLoginLink}
-              </button>
-            </p>
-          )}
-        </div>
-
-        {/* Quick test accounts helper */}
-        <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800">
-          <div className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mb-2 flex items-center justify-between">
-            <span>{isArabic ? 'حسابات تجريبية سريعة:' : 'Comptes de test rapide :'}</span>
-            <span className="text-[9px] text-slate-500 dark:text-slate-400">mdp: password123</span>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
+            {/* Continue with Google */}
             <button
-              id="quick-login-admin"
+              id="google-login-btn"
               type="button"
-              onClick={() => fillQuickAccount('admin@bacnext.dz')}
-              className="px-2 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100/70 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-300 text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+              disabled={googleLoading}
+              onClick={handleGoogleSignIn}
+              className="w-full py-2.5 px-4 rounded-xl bg-white dark:bg-slate-900/80 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:border-slate-400 active:scale-[0.99] text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm shadow-xs flex items-center justify-center gap-3 transition-all cursor-pointer disabled:opacity-60"
             >
-              <span>👑</span>
-              <span>Admin (Yahia)</span>
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+              <span>{t.auth.continueWithGoogle}</span>
             </button>
-            <button
-              id="quick-login-student"
-              type="button"
-              onClick={() => fillQuickAccount('etudiant@bacnext.dz')}
-              className="px-2 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100/70 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-900/60 text-blue-800 dark:text-blue-300 text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
-            >
-              <span>🎓</span>
-              <span>Étudiant (Yaya)</span>
-            </button>
-          </div>
+
+            {/* Switch Link between Login & Register */}
+            <div className="mt-4 text-center">
+              {mode === 'login' ? (
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {t.auth.switchSignupPrompt}{' '}
+                  <button
+                    type="button"
+                    id="switch-to-signup-link"
+                    onClick={() => {
+                      setMode('signup');
+                      setErrorMsg(null);
+                      setSuccessMsg(null);
+                      setGoogleNotice(null);
+                    }}
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline cursor-pointer"
+                  >
+                    {t.auth.switchSignupLink}
+                  </button>
+                </p>
+              ) : (
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {t.auth.switchLoginPrompt}{' '}
+                  <button
+                    type="button"
+                    id="switch-to-login-link"
+                    onClick={() => {
+                      setMode('login');
+                      setErrorMsg(null);
+                      setSuccessMsg(null);
+                      setGoogleNotice(null);
+                    }}
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline cursor-pointer"
+                  >
+                    {t.auth.switchLoginLink}
+                  </button>
+                </p>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Academic & Security Reassurance Footer */}
+        <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 text-center">
+          <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span>
+            {isArabic
+              ? 'منصة تعليمية آمنة ومجانية 100% • مطابقة للبرنامج الرسمي للبكالوريا'
+              : (language === 'en' ? '100% Secure • Compliant with official BAC curriculum' : 'Plateforme 100% sécurisée • Conforme au programme officiel du BAC')}
+          </span>
         </div>
       </div>
     </div>

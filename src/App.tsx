@@ -12,7 +12,8 @@ import { Sidebar } from './components/layout/Sidebar';
 import { MobileNav } from './components/layout/MobileNav';
 import { QuickSearchModal } from './components/layout/QuickSearchModal';
 import { AuthModal } from './components/common/AuthModal';
-import { StreamOnboardingModal } from './components/common/StreamOnboardingModal';
+import { StudentOnboardingModal } from './components/common/StudentOnboardingModal';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { useAuth } from './context/AuthContext';
 
 // Pages
@@ -30,20 +31,52 @@ import { AiAssistantPage } from './components/pages/AiAssistantPage';
 import { StudyPlannerPage } from './components/pages/StudyPlannerPage';
 import { ProfilePage } from './components/pages/ProfilePage';
 import { LoginPage } from './components/pages/LoginPage';
-import { AdminDashboard } from './components/admin/AdminDashboard';
+import { ResetPasswordPage } from './components/pages/ResetPasswordPage';
+import { AdminDashboard, AdminTab } from './components/admin/AdminDashboard';
 
 function AppContent() {
   const { isRTL } = useLanguage();
-  const { currentUser, isAdmin, showStreamOnboarding, completeStreamOnboarding } = useAuth();
+  const { currentUser, isAdmin, showStudentOnboarding, showStreamOnboarding, isRecoveryMode } = useAuth();
 
   // Initialize view: unauthenticated users land on public landing page
   const [currentView, setCurrentView] = useState<ViewType>(() => {
-    const wasLoggedOut = typeof window !== 'undefined' && localStorage.getItem('bacnext_logged_out') === 'true';
-    const savedUser = typeof window !== 'undefined' && localStorage.getItem('bacnext_current_user');
+    const path = typeof window !== 'undefined' ? window.location.pathname : '';
+    const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    const search = typeof window !== 'undefined' ? window.location.search : '';
+
+    if (hash.includes('type=recovery') || search.includes('type=recovery')) {
+      return 'reset-password';
+    }
+
+    const wasLoggedOut =
+      typeof window !== 'undefined' &&
+      (localStorage.getItem('eosbac_logged_out') === 'true' ||
+        localStorage.getItem('bacnext_logged_out') === 'true');
+    const savedUser =
+      typeof window !== 'undefined' &&
+      (localStorage.getItem('eosbac_current_user') ||
+        localStorage.getItem('bacnext_current_user'));
     if (wasLoggedOut || !savedUser) {
+      if (path === '/login') return 'login';
+      if (path === '/reset-password') return 'reset-password';
       return 'landing';
     }
+    let role = 'student';
+    try {
+      const parsed = JSON.parse(savedUser);
+      role = parsed?.role || 'student';
+    } catch {}
+
+    if (role === 'admin') {
+      if (path.startsWith('/admin/users')) return 'admin-users';
+      if (path.startsWith('/admin')) return 'admin';
+    }
     return 'dashboard';
+  });
+
+  const [adminTab, setAdminTab] = useState<AdminTab>(() => {
+    const path = typeof window !== 'undefined' ? window.location.pathname : '';
+    return path.startsWith('/admin/users') ? 'users' : 'lessons';
   });
 
   const [currentStream, setCurrentStream] = useState<StreamType>('sciences_experimentales');
@@ -65,6 +98,11 @@ function AppContent() {
         name: currentUser.full_name,
         avatar: currentUser.avatar_url || prev.avatar,
         currentStream: currentUser.stream || prev.currentStream,
+        dream: currentUser.dream || prev.dream,
+        goal: currentUser.goal || prev.goal,
+        targetScore: currentUser.target_score || prev.targetScore,
+        studyFocus: currentUser.study_focus || prev.studyFocus,
+        onboardingCompleted: currentUser.onboarding_completed,
       }));
       if (currentUser.stream) {
         setCurrentStream(currentUser.stream);
@@ -72,13 +110,20 @@ function AppContent() {
 
       // Automatically route on login / user switch:
       // - If role = student -> Student Dashboard ('dashboard')
-      // - If role = admin -> Admin Dashboard ('admin')
+      // - If role = admin -> Admin Dashboard ('admin' or 'admin-users')
       const isLoginOrSwitch = prevUserIdRef.current !== currentUser.id;
       prevUserIdRef.current = currentUser.id;
 
       if (isLoginOrSwitch) {
         if (currentUser.role === 'admin') {
-          setCurrentView('admin');
+          const path = typeof window !== 'undefined' ? window.location.pathname : '';
+          if (path.startsWith('/admin/users')) {
+            setCurrentView('admin-users');
+            setAdminTab('users');
+          } else {
+            setCurrentView('admin');
+            setAdminTab('lessons');
+          }
         } else {
           setCurrentView('dashboard');
         }
@@ -92,7 +137,7 @@ function AppContent() {
         avatar: '',
       });
       // Force user back to public landing page and reset URL/history
-      if (currentView !== 'landing' && currentView !== 'login') {
+      if (currentView !== 'landing' && currentView !== 'login' && currentView !== 'reset-password') {
         setCurrentView('landing');
         try {
           window.history.replaceState(null, '', '/');
@@ -101,24 +146,48 @@ function AppContent() {
     }
   }, [currentUser]);
 
+  // Handle automatic transition to reset-password when in recovery mode
+  useEffect(() => {
+    if (isRecoveryMode && currentView !== 'reset-password') {
+      setCurrentView('reset-password');
+    }
+  }, [isRecoveryMode]);
+
   // Security guard: Prevent browser back-navigation to protected views when logged out
   useEffect(() => {
     const handlePopState = () => {
-      if (!currentUser && currentView !== 'landing' && currentView !== 'login') {
+      const path = typeof window !== 'undefined' ? window.location.pathname : '';
+      if (!currentUser && currentView !== 'landing' && currentView !== 'login' && currentView !== 'reset-password') {
         setCurrentView('landing');
         try {
           window.history.replaceState(null, '', '/');
         } catch {}
+        return;
+      }
+
+      if (currentUser && currentUser.role === 'admin') {
+        if (path === '/admin/users') {
+          setCurrentView('admin-users');
+          setAdminTab('users');
+          return;
+        } else if (path === '/admin') {
+          setCurrentView('admin');
+          setAdminTab('lessons');
+          return;
+        }
       }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [currentUser, currentView]);
 
-  // Security guard: Non-admins cannot access admin route
+  // Security guard: Non-admins cannot access admin route or admin-users
   useEffect(() => {
-    if (currentView === 'admin' && !isAdmin) {
+    if ((currentView === 'admin' || currentView === 'admin-users') && !isAdmin) {
       setCurrentView('dashboard');
+      try {
+        window.history.replaceState(null, '', '/dashboard');
+      } catch {}
     }
   }, [currentView, isAdmin]);
 
@@ -141,13 +210,36 @@ function AppContent() {
 
   // Central Navigation Handler with protected route checking
   const handleNavigate = (view: ViewType, payload?: any) => {
-    if (!currentUser && view !== 'landing' && view !== 'login') {
+    if (!currentUser && view !== 'landing' && view !== 'login' && view !== 'reset-password') {
       // Protected routes require sign in
       handleOpenAuth('login');
       setCurrentView('landing');
       try {
         window.history.replaceState(null, '', '/');
       } catch {}
+      return;
+    }
+
+    if (view === 'admin-users') {
+      try {
+        window.history.pushState(null, '', '/admin/users');
+      } catch {}
+      setAdminTab('users');
+      setCurrentView('admin-users');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    } else if (view === 'admin') {
+      const targetTab = payload?.tab || 'lessons';
+      setAdminTab(targetTab);
+      try {
+        window.history.pushState(
+          null,
+          '',
+          targetTab === 'users' ? '/admin/users' : '/admin'
+        );
+      } catch {}
+      setCurrentView(targetTab === 'users' ? 'admin-users' : 'admin');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -172,16 +264,33 @@ function AppContent() {
   };
 
   // Safe view resolution: unauthenticated users only see public views
+  const isResetPasswordPage = currentView === 'reset-password' || isRecoveryMode;
   const isLoginPage = currentView === 'login';
-  const isLanding = currentView === 'landing' || (!currentUser && !isLoginPage);
-  const isAdminView = currentView === 'admin' && isAdmin;
+  const isLanding = currentView === 'landing' || (!currentUser && !isLoginPage && !isResetPasswordPage);
+  const isAdminView = (currentView === 'admin' || currentView === 'admin-users') && isAdmin;
 
   return (
     <div
       dir={isRTL ? 'rtl' : 'ltr'}
       className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white relative overflow-x-hidden transition-colors"
     >
-      {isLoginPage ? (
+      {isResetPasswordPage ? (
+        // PASSWORD RECOVERY VIEW
+        <div className="flex-1 flex flex-col min-h-screen">
+          <Navbar
+            currentView={currentView}
+            onNavigate={handleNavigate}
+            currentStream={currentStream}
+            onStreamChange={handleStreamChange}
+            profile={userProfile}
+            onOpenAuth={handleOpenAuth}
+            onOpenSearch={() => setIsQuickSearchOpen(true)}
+          />
+          <main className="flex-1">
+            <ResetPasswordPage onNavigate={handleNavigate} />
+          </main>
+        </div>
+      ) : isLoginPage ? (
         // AUTHENTICATION VIEW (Dedicated Login / Signup Page)
         <div className="flex-1 flex flex-col min-h-screen">
           <Navbar
@@ -251,7 +360,18 @@ function AppContent() {
             {/* Scrollable Content Container */}
             <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto pb-24 md:pb-12">
               {isAdminView ? (
-                <AdminDashboard onBackToStudent={() => handleNavigate('dashboard')} />
+                <AdminDashboard
+                  initialTab={currentView === 'admin-users' ? 'users' : adminTab}
+                  onTabChange={(tab) => {
+                    setAdminTab(tab);
+                    if (tab === 'users') {
+                      setCurrentView('admin-users');
+                    } else {
+                      setCurrentView('admin');
+                    }
+                  }}
+                  onBackToStudent={() => handleNavigate('dashboard')}
+                />
               ) : (
                 <>
                   {currentView === 'dashboard' && (
@@ -380,13 +500,11 @@ function AppContent() {
         }}
       />
 
-      {/* Stream Onboarding Modal for new Google users */}
-      <StreamOnboardingModal
-        isOpen={showStreamOnboarding}
+      {/* Student First-Time Onboarding Experience (Stream, Dream, Goal, Target Score) */}
+      <StudentOnboardingModal
+        isOpen={showStudentOnboarding || showStreamOnboarding}
         defaultStream={currentStream}
-        onSelectStream={async (stream) => {
-          await completeStreamOnboarding(stream);
-          handleStreamChange(stream);
+        onFinish={() => {
           handleNavigate('dashboard');
         }}
       />
@@ -396,14 +514,18 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <LanguageProvider>
-        <AuthProvider>
-          <ContentProvider>
-            <AppContent />
-          </ContentProvider>
-        </AuthProvider>
-      </LanguageProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <ContentProvider>
+              <ErrorBoundary>
+                <AppContent />
+              </ErrorBoundary>
+            </ContentProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }

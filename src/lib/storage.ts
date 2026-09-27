@@ -22,17 +22,30 @@ export async function uploadAvatarImage(
     return { success: false, error: 'L’image ne doit pas dépasser 5 Mo.' };
   }
 
-  // 1. Try uploading to Supabase Storage if configured
+  // 1. First compress the image to max 256x256 at 0.8 quality to minimize upload bandwidth and storage
+  let compressedBlob: Blob | null = null;
+  let compressedDataUrl: string | null = null;
+
+  try {
+    const result = await compressImage(file, 256, 256, 0.8);
+    compressedBlob = result.blob;
+    compressedDataUrl = result.dataUrl;
+  } catch (err: any) {
+    console.warn('Image compression warning, proceeding with original file:', err);
+  }
+
+  // 2. Try uploading to Supabase Storage if configured
   if (isSupabaseConfigured && supabase) {
     try {
-      const fileExt = file.name.split('.').pop() || 'jpg';
-      const cleanExt = fileExt.replace(/[^a-zA-Z0-9]/g, '');
-      const filePath = `${userId}/avatar-${Date.now()}.${cleanExt}`;
+      const fileExt = 'jpg';
+      const filePath = `${userId}/avatar-${Date.now()}.${fileExt}`;
+      const payloadToUpload = compressedBlob || file;
 
       const { data, error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, {
-          cacheControl: '3600',
+        .upload(filePath, payloadToUpload, {
+          contentType: 'image/jpeg',
+          cacheControl: '31536000', // 1 year cache for immutable hashed avatar
           upsert: true,
         });
 
@@ -52,24 +65,23 @@ export async function uploadAvatarImage(
     }
   }
 
-  // 2. Fallback: Compress image via canvas to a compact Base64 Data URL (max 400x400)
-  try {
-    const dataUrl = await compressImageFile(file, 400, 400, 0.85);
-    return { success: true, url: dataUrl };
-  } catch (err: any) {
-    return { success: false, error: err?.message || 'Erreur lors du traitement de l’image.' };
+  // 3. Fallback: Compact Base64 Data URL (already resized to 256x256, < 20KB)
+  if (compressedDataUrl) {
+    return { success: true, url: compressedDataUrl };
   }
+
+  return { success: false, error: 'Erreur lors du traitement de l’image.' };
 }
 
 /**
- * Resizes and compresses an image file to a lightweight data URL
+ * Resizes and compresses an image file to both a Blob (for upload) and a compact data URL
  */
-export function compressImageFile(
+export function compressImage(
   file: File,
-  maxWidth = 400,
-  maxHeight = 400,
-  quality = 0.85
-): Promise<string> {
+  maxWidth = 256,
+  maxHeight = 256,
+  quality = 0.8
+): Promise<{ blob: Blob; dataUrl: string }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (readerEvent) => {
@@ -95,13 +107,26 @@ export function compressImageFile(
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-          resolve(readerEvent.target?.result as string);
+          reject(new Error('Canvas 2D context unavailable.'));
           return;
         }
 
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
+
         const dataUrl = canvas.toDataURL('image/jpeg', quality);
-        resolve(dataUrl);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve({ blob, dataUrl });
+            } else {
+              reject(new Error('Failed to create image blob.'));
+            }
+          },
+          'image/jpeg',
+          quality
+        );
       };
       img.onerror = () => reject(new Error('Impossible de lire l’image.'));
       img.src = readerEvent.target?.result as string;
@@ -109,4 +134,17 @@ export function compressImageFile(
     reader.onerror = () => reject(new Error('Erreur de lecture du fichier.'));
     reader.readAsDataURL(file);
   });
+}
+
+/**
+ * Backward compatibility wrapper
+ */
+export async function compressImageFile(
+  file: File,
+  maxWidth = 256,
+  maxHeight = 256,
+  quality = 0.8
+): Promise<string> {
+  const result = await compressImage(file, maxWidth, maxHeight, quality);
+  return result.dataUrl;
 }

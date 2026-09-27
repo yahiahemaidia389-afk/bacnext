@@ -73,7 +73,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
             className="inline-flex items-center gap-2 py-2 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-xs"
           >
             <PlusCircle className="w-4 h-4" />
-            <span>{adminActionLabel || 'Ajouter du contenu'}</span>
+            <span>{adminActionLabel || (language === 'ar' ? 'إضافة محتوى جديد' : (language === 'en' ? 'Add content' : 'Ajouter du contenu'))}</span>
           </button>
         </div>
       )}

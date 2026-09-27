@@ -81,12 +81,12 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800/80 pb-5">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            {isArabic ? 'المواد الدراسية' : 'Matières du BAC'}
+            {isArabic ? 'المواد الدراسية' : (language === 'en' ? 'BAC Subjects' : 'Matières du BAC')}
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">
             {isArabic
               ? 'المنهاج الرسمي للسنة الثالثة ثانوي مصنف بحسب المعاملات الوزارية.'
-              : 'Programme officiel 3AS avec cours, exercices d’application et suivi de progression.'}
+              : (language === 'en' ? 'Official 3AS curriculum with lessons, exercises, and progress tracking.' : 'Programme officiel 3AS avec cours, exercices d’application et suivi de progression.')}
           </p>
         </div>
 
@@ -108,7 +108,7 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({
           type="text"
           value={searchFilter}
           onChange={(e) => setSearchFilter(e.target.value)}
-          placeholder={isArabic ? 'ابحث عن مادة دراسية...' : 'Rechercher une matière...'}
+          placeholder={isArabic ? 'ابحث عن مادة دراسية...' : (language === 'en' ? 'Search for a subject...' : 'Rechercher une matière...')}
           className={`w-full py-2.5 bg-white dark:bg-[#131B2E] border border-slate-200/80 dark:border-slate-800 focus:border-blue-500 dark:focus:border-blue-500 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-colors shadow-2xs ${
             isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'
           }`}
@@ -154,7 +154,7 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({
                     </div>
 
                     <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700">
-                      {isArabic ? `معامل ${coeff}` : `Coeff ${coeff}`}
+                      {isArabic ? `معامل ${coeff}` : (language === 'en' ? `Coeff ${coeff}` : `Coeff ${coeff}`)}
                     </span>
                   </div>
 
@@ -163,7 +163,7 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({
                       {isArabic ? sub.arabicName : sub.name}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                      {isArabic ? sub.description : (sub.description || 'Programme complet avec fiches de révision et exercices.')}
+                      {isArabic ? sub.description : (sub.description || (language === 'en' ? 'Complete curriculum with revision sheets and practice exercises.' : 'Programme complet avec fiches de révision et exercices.'))}
                     </p>
                   </div>
 
@@ -171,11 +171,11 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({
                   <div className="flex items-center gap-2 pt-1 text-xs">
                     <span className="px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 font-semibold border border-blue-200/60 dark:border-blue-800/60 flex items-center gap-1.5 text-[11px]">
                       <BookOpen className="w-3 h-3" />
-                      <span>{lessonCount} {isArabic ? 'دروس' : 'cours'}</span>
+                      <span>{lessonCount} {isArabic ? 'دروس' : (language === 'en' ? 'lessons' : 'cours')}</span>
                     </span>
                     <span className="px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200/60 dark:border-emerald-800/60 flex items-center gap-1.5 text-[11px]">
                       <FileCheck2 className="w-3 h-3" />
-                      <span>{exerciseCount} {isArabic ? 'تمارين' : 'exercices'}</span>
+                      <span>{exerciseCount} {isArabic ? 'تمارين' : (language === 'en' ? 'exercises' : 'exercices')}</span>
                     </span>
                   </div>
                 </div>
@@ -184,7 +184,7 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({
                 <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 space-y-3">
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                      <span>{isArabic ? 'نسبة التقدم' : 'Progression'}</span>
+                      <span>{isArabic ? 'نسبة التقدم' : (language === 'en' ? 'Progress' : 'Progression')}</span>
                       <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{progress}%</span>
                     </div>
                     <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -202,7 +202,7 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({
                     }}
                     className="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs group/btn"
                   >
-                    <span>{isArabic ? 'دخول المادة والمراجعة' : 'Accéder au programme'}</span>
+                    <span>{isArabic ? 'دخول المادة والمراجعة' : (language === 'en' ? 'View Curriculum' : 'Accéder au programme')}</span>
                     <ArrowRight
                       className={`w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform ${
                         isRTL ? 'rotate-180 group-hover/btn:-translate-x-0.5' : ''

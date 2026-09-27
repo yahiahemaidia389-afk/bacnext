@@ -2,30 +2,19 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserAccount, UserRole, StreamType } from '../types';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Language } from '../i18n/types';
+import { getAuthRedirectUrl } from '../lib/authRedirect';
 
-// Seeded initial users for instant local testing and role management
+// Initial fallback users for local state
 const INITIAL_USERS: UserAccount[] = [
   {
     id: 'usr-admin-1',
-    full_name: 'Yahia Hemaidia',
-    email: 'admin@bacnext.dz',
+    full_name: 'Administrateur EOS BAC',
+    email: 'admin@eosbac.dz',
     role: 'admin',
     stream: 'sciences_experimentales',
     language: 'fr',
     avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
     created_at: '2026-09-01T10:00:00Z',
-    password: 'password123',
-  },
-  {
-    id: 'usr-student-1',
-    full_name: 'Yaya Etudiant',
-    email: 'etudiant@bacnext.dz',
-    role: 'student',
-    stream: 'sciences_experimentales',
-    language: 'fr',
-    avatar_url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=256&q=80',
-    created_at: '2026-09-10T14:30:00Z',
-    password: 'password123',
   },
 ];
 
@@ -35,6 +24,17 @@ interface AuthContextType {
   isAdmin: boolean;
   isStudent: boolean;
   users: UserAccount[];
+  isLoadingUsers: boolean;
+  refreshUsers: () => Promise<void>;
+  showStudentOnboarding: boolean;
+  setShowStudentOnboarding: (show: boolean) => void;
+  completeStudentOnboarding: (data: {
+    stream: StreamType;
+    dream: string;
+    goal: string;
+    targetScore?: string;
+    studyFocus?: string;
+  }) => Promise<void>;
   showStreamOnboarding: boolean;
   setShowStreamOnboarding: (show: boolean) => void;
   completeStreamOnboarding: (stream: StreamType) => Promise<void>;
@@ -45,7 +45,12 @@ interface AuthContextType {
     password?: string;
     stream: StreamType;
     language?: Language;
-  }) => Promise<{ success: boolean; user?: UserAccount; error?: string }>;
+  }) => Promise<{ success: boolean; user?: UserAccount; requiresVerification?: boolean; error?: string }>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  updatePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  resendVerificationEmail: (email: string) => Promise<{ success: boolean; error?: string }>;
+  isRecoveryMode: boolean;
+  setIsRecoveryMode: (active: boolean) => void;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   promoteUserToAdmin: (targetUserId: string) => Promise<{ success: boolean; error?: string }>;
@@ -55,6 +60,10 @@ interface AuthContextType {
     stream?: StreamType;
     language?: Language;
     avatarUrl?: string;
+    dream?: string;
+    goal?: string;
+    targetScore?: string;
+    studyFocus?: string;
   }) => Promise<{ success: boolean; error?: string }>;
   switchAccountForTesting: (userId: string) => void;
 }
@@ -64,7 +73,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load users list from local storage or use initial seed
   const [users, setUsers] = useState<UserAccount[]>(() => {
-    const saved = localStorage.getItem('bacnext_users');
+    const saved = localStorage.getItem('eosbac_users') || localStorage.getItem('bacnext_users');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -75,14 +84,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return INITIAL_USERS;
   });
 
+  const [isLoadingUsers, setIsLoadingUsers] = useState<boolean>(false);
+
   // Load current session
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
     // Check if user was explicitly logged out
-    const wasLoggedOut = localStorage.getItem('bacnext_logged_out') === 'true';
+    const wasLoggedOut =
+      localStorage.getItem('eosbac_logged_out') === 'true' ||
+      localStorage.getItem('bacnext_logged_out') === 'true';
     if (wasLoggedOut) {
       return null;
     }
-    const saved = localStorage.getItem('bacnext_current_user');
+    const saved = localStorage.getItem('eosbac_current_user') || localStorage.getItem('bacnext_current_user');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -91,39 +104,143 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
     }
-    // Default to the first seed student on fresh start if never logged out
-    return INITIAL_USERS[0];
+    // Anonymous unauthenticated user by default
+    return null;
   });
 
-  // State to trigger the stream onboarding modal for new Google users
-  const [showStreamOnboarding, setShowStreamOnboarding] = useState<boolean>(() => {
-    const pending = localStorage.getItem('bacnext_pending_stream_onboarding');
+  // Password Recovery Detection Mode
+  const [isRecoveryMode, setIsRecoveryMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash || '';
+      const search = window.location.search || '';
+      return hash.includes('type=recovery') || search.includes('type=recovery');
+    }
+    return false;
+  });
+
+  // State to trigger the student onboarding modal for new students
+  const [showStudentOnboarding, setShowStudentOnboarding] = useState<boolean>(() => {
+    const pending =
+      localStorage.getItem('eosbac_pending_student_onboarding') ||
+      localStorage.getItem('bacnext_pending_student_onboarding') ||
+      localStorage.getItem('eosbac_pending_stream_onboarding') ||
+      localStorage.getItem('bacnext_pending_stream_onboarding');
     return pending === 'true';
   });
 
+  const showStreamOnboarding = showStudentOnboarding;
+  const setShowStreamOnboarding = setShowStudentOnboarding;
+
   useEffect(() => {
-    if (showStreamOnboarding) {
+    if (showStudentOnboarding) {
+      localStorage.setItem('eosbac_pending_student_onboarding', 'true');
+      localStorage.setItem('bacnext_pending_student_onboarding', 'true');
+      localStorage.setItem('eosbac_pending_stream_onboarding', 'true');
       localStorage.setItem('bacnext_pending_stream_onboarding', 'true');
     } else {
+      localStorage.removeItem('eosbac_pending_student_onboarding');
+      localStorage.removeItem('bacnext_pending_student_onboarding');
+      localStorage.removeItem('eosbac_pending_stream_onboarding');
       localStorage.removeItem('bacnext_pending_stream_onboarding');
     }
-  }, [showStreamOnboarding]);
+  }, [showStudentOnboarding]);
 
   // Save users list to localStorage whenever updated
   useEffect(() => {
-    localStorage.setItem('bacnext_users', JSON.stringify(users));
+    const serialized = JSON.stringify(users);
+    localStorage.setItem('eosbac_users', serialized);
+    localStorage.setItem('bacnext_users', serialized);
   }, [users]);
 
   // Save current user to localStorage whenever updated
   useEffect(() => {
     if (currentUser) {
-      localStorage.setItem('bacnext_current_user', JSON.stringify(currentUser));
+      const serialized = JSON.stringify(currentUser);
+      localStorage.setItem('eosbac_current_user', serialized);
+      localStorage.setItem('bacnext_current_user', serialized);
+      localStorage.setItem('eosbac_role', currentUser.role);
       localStorage.setItem('bacnext_role', currentUser.role);
     } else {
+      localStorage.removeItem('eosbac_current_user');
       localStorage.removeItem('bacnext_current_user');
+      localStorage.setItem('eosbac_role', 'student');
       localStorage.setItem('bacnext_role', 'student');
     }
   }, [currentUser]);
+
+  const refreshUsersPromiseRef = React.useRef<Promise<void> | null>(null);
+
+  // Synchronize authenticated Supabase user profile with DB profiles table
+  const refreshUsers = async (): Promise<void> => {
+    if (refreshUsersPromiseRef.current) {
+      return refreshUsersPromiseRef.current;
+    }
+
+    const task = (async () => {
+      setIsLoadingUsers(true);
+      try {
+        if (isSupabaseConfigured && supabase) {
+          // Select only required columns rather than SELECT *
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('id, full_name, email, role, stream, language, avatar_url, dream, goal, target_score, study_focus, onboarding_completed, created_at')
+            .order('created_at', { ascending: false });
+
+          if (!error && data && data.length > 0) {
+            const mappedUsers: UserAccount[] = data.map((p) => ({
+              id: p.id,
+              full_name: p.full_name || 'Utilisateur',
+              email: p.email || '',
+              role: (p.role === 'admin' ? 'admin' : 'student') as UserRole,
+              stream: (p.stream as StreamType) || 'sciences_experimentales',
+              language: (p.language as Language) || 'fr',
+              avatar_url: p.avatar_url,
+              dream: p.dream || undefined,
+              goal: p.goal || undefined,
+              target_score: p.target_score || undefined,
+              study_focus: p.study_focus || undefined,
+              onboarding_completed: Boolean(p.onboarding_completed),
+              created_at: p.created_at,
+            }));
+
+            setUsers(mappedUsers);
+            const serialized = JSON.stringify(mappedUsers);
+            localStorage.setItem('eosbac_users', serialized);
+            localStorage.setItem('bacnext_users', serialized);
+
+            // Also keep currentUser synced if changed in Supabase
+            const savedCurrent = localStorage.getItem('eosbac_current_user') || localStorage.getItem('bacnext_current_user');
+            if (savedCurrent) {
+              try {
+                const currentObj = JSON.parse(savedCurrent);
+                const freshCurrent = mappedUsers.find(
+                  (u) =>
+                    u.id === currentObj.id ||
+                    (u.email && currentObj.email && u.email.toLowerCase() === currentObj.email.toLowerCase())
+                );
+                if (freshCurrent && (freshCurrent.role !== currentObj.role || freshCurrent.full_name !== currentObj.full_name)) {
+                  setCurrentUser(freshCurrent);
+                  const freshSerialized = JSON.stringify(freshCurrent);
+                  localStorage.setItem('eosbac_current_user', freshSerialized);
+                  localStorage.setItem('bacnext_current_user', freshSerialized);
+                  localStorage.setItem('eosbac_role', freshCurrent.role);
+                  localStorage.setItem('bacnext_role', freshCurrent.role);
+                }
+              } catch {}
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error refreshing users list from Supabase:', err);
+      } finally {
+        setIsLoadingUsers(false);
+        refreshUsersPromiseRef.current = null;
+      }
+    })();
+
+    refreshUsersPromiseRef.current = task;
+    return task;
+  };
 
   // Synchronize authenticated Supabase user profile with DB profiles table
   const syncSupabaseUserProfile = async (authUser: any): Promise<UserAccount | null> => {
@@ -156,7 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         authUser.user_metadata?.full_name ||
         authUser.user_metadata?.name ||
         authUser.email?.split('@')[0] ||
-        'Élève BacNext';
+        'Élève EOS BAC';
 
       const googleAvatar =
         authUser.user_metadata?.avatar_url ||
@@ -212,6 +329,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         stream: (userProfile.stream as StreamType) || (null as any),
         language: (userProfile.language as Language) || 'fr',
         avatar_url: userProfile.avatar_url || googleAvatar,
+        dream: userProfile.dream || undefined,
+        goal: userProfile.goal || undefined,
+        target_score: userProfile.target_score || undefined,
+        study_focus: userProfile.study_focus || undefined,
+        onboarding_completed: Boolean(userProfile.onboarding_completed),
         created_at: userProfile.created_at || new Date().toISOString(),
       };
 
@@ -230,13 +352,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return [...prev, loadedAccount];
       });
 
-      // 9. If a new student has no BAC stream, show the stream selection onboarding:
-      //    - Sciences Expérimentales
-      //    - Mathématiques
-      if (resolvedRole === 'student' && (!userProfile.stream || userProfile.stream === '')) {
-        setShowStreamOnboarding(true);
+      // 9. First-Time Detection: If a student hasn't completed onboarding or has no stream:
+      // Show the student onboarding experience (stream, dream, goal)
+      if (resolvedRole === 'student' && (!userProfile.onboarding_completed || !userProfile.stream || userProfile.stream === '')) {
+        setShowStudentOnboarding(true);
       } else {
-        setShowStreamOnboarding(false);
+        setShowStudentOnboarding(false);
+      }
+
+      // Clear any prior logged-out indicator
+      try {
+        localStorage.removeItem('bacnext_logged_out');
+      } catch {}
+
+      // Clean up OAuth tokens or callback codes from the browser address bar for a pristine URL
+      if (typeof window !== 'undefined' && (window.location.hash || window.location.search)) {
+        if (
+          window.location.hash.includes('access_token') ||
+          window.location.hash.includes('refresh_token') ||
+          window.location.search.includes('code=') ||
+          window.location.search.includes('error=')
+        ) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
       }
 
       return loadedAccount;
@@ -252,53 +390,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isSupabaseConfigured || !client) return;
 
     // 1. Initial fetch of existing profiles
-    client
-      .from('profiles')
-      .select('*')
-      .then(({ data, error }) => {
-        if (!error && data && data.length > 0) {
-          const mappedUsers: UserAccount[] = data.map((p) => ({
-            id: p.id,
-            full_name: p.full_name,
-            email: p.email,
-            role: (p.role === 'admin' ? 'admin' : 'student') as UserRole,
-            stream: (p.stream as StreamType) || 'sciences_experimentales',
-            language: (p.language as Language) || 'fr',
-            avatar_url: p.avatar_url,
-            created_at: p.created_at,
-          }));
-          setUsers((prev) => {
-            const merged = [...prev];
-            mappedUsers.forEach((mu) => {
-              const idx = merged.findIndex((u) => u.id === mu.id || u.email.toLowerCase() === mu.email.toLowerCase());
-              if (idx >= 0) merged[idx] = mu;
-              else merged.push(mu);
-            });
-            return merged;
-          });
-        }
-      });
+    refreshUsers();
 
-    // 2. Check active session immediately on mount (handles Google OAuth callback redirects)
+    // 2. Check active session immediately on mount (handles Google OAuth callback redirects and recovery)
     client.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
+      const isRecovery =
+        typeof window !== 'undefined' &&
+        (window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery'));
+      if (isRecovery) {
+        setIsRecoveryMode(true);
+      } else if (session?.user) {
         syncSupabaseUserProfile(session.user);
+      } else {
+        // If Supabase has no active session and local storage was not explicitly restored, ensure null
+        const saved = localStorage.getItem('eosbac_current_user') || localStorage.getItem('bacnext_current_user');
+        if (!saved) {
+          setCurrentUser(null);
+        }
       }
     });
 
-    // 3. Real-time auth state listener (OAuth callbacks, login, logout, token refresh)
+    // 3. Real-time auth state listener (OAuth callbacks, login, logout, token refresh, password recovery)
     const { data: { subscription } } = client.auth.onAuthStateChange(async (event, session) => {
-      if (
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecoveryMode(true);
+      } else if (
         session?.user &&
         (event === 'SIGNED_IN' ||
           event === 'INITIAL_SESSION' ||
           event === 'USER_UPDATED' ||
           event === 'TOKEN_REFRESHED')
       ) {
-        await syncSupabaseUserProfile(session.user);
+        if (!isRecoveryMode && !window.location.hash.includes('type=recovery')) {
+          await syncSupabaseUserProfile(session.user);
+        }
       } else if (event === 'SIGNED_OUT') {
         setCurrentUser(null);
         setShowStreamOnboarding(false);
+        setIsRecoveryMode(false);
       }
     });
 
@@ -318,50 +447,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ): Promise<{ success: boolean; user?: UserAccount; error?: string }> => {
     const cleanEmail = email.trim().toLowerCase();
 
-    // Check in local database
-    const matchedUser = users.find((u) => u.email.toLowerCase() === cleanEmail);
-
-    if (matchedUser) {
-      localStorage.removeItem('bacnext_logged_out');
-      localStorage.setItem('bacnext_current_user', JSON.stringify(matchedUser));
-      setCurrentUser(matchedUser);
-      return { success: true, user: matchedUser };
+    if (!cleanEmail || !password) {
+      return { success: false, error: 'Veuillez saisir votre email et votre mot de passe.' };
     }
 
-    // If Supabase is active, check auth
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return { success: false, error: "Format d'adresse email invalide." };
+    }
+
+    // If Supabase is active, authenticate with Supabase
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: cleanEmail,
-          password: password || 'password123',
+          password: password,
         });
         if (error) {
+          const msg = error.message.toLowerCase();
+          if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+            return { success: false, error: 'Email ou mot de passe incorrect.' };
+          }
+          if (msg.includes('email not confirmed')) {
+            return { success: false, error: 'Veuillez confirmer votre adresse email avant de vous connecter.' };
+          }
+          if (error.status === 429 || msg.includes('rate limit')) {
+            return { success: false, error: 'Trop de tentatives. Veuillez patienter avant de réessayer.' };
+          }
           return { success: false, error: error.message };
         }
         if (data.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', data.user.id)
-            .single();
-
-          const loadedUser: UserAccount = {
-            id: data.user.id,
-            full_name: profile?.full_name || data.user.email?.split('@')[0] || 'Utilisateur',
-            email: data.user.email || cleanEmail,
-            role: (profile?.role === 'admin' ? 'admin' : 'student') as UserRole,
-            stream: (profile?.stream as StreamType) || 'sciences_experimentales',
-            language: (profile?.language as Language) || 'fr',
-            created_at: profile?.created_at || new Date().toISOString(),
-          };
-          localStorage.removeItem('bacnext_logged_out');
-          localStorage.setItem('bacnext_current_user', JSON.stringify(loadedUser));
-          setCurrentUser(loadedUser);
-          return { success: true, user: loadedUser };
+          const loadedUser = await syncSupabaseUserProfile(data.user);
+          if (loadedUser) {
+            return { success: true, user: loadedUser };
+          }
         }
       } catch (err: any) {
-        return { success: false, error: err.message };
+        return { success: false, error: err.message || 'Erreur de connexion.' };
       }
+    }
+
+    // Local state fallback for offline development
+    const matchedUser = users.find((u) => u.email.toLowerCase() === cleanEmail);
+    if (matchedUser) {
+      localStorage.removeItem('bacnext_logged_out');
+      localStorage.removeItem('eosbac_logged_out');
+      localStorage.setItem('bacnext_current_user', JSON.stringify(matchedUser));
+      localStorage.setItem('eosbac_current_user', JSON.stringify(matchedUser));
+      setCurrentUser(matchedUser);
+      return { success: true, user: matchedUser };
     }
 
     return { success: false, error: 'Compte introuvable. Veuillez vérifier vos identifiants.' };
@@ -382,14 +516,75 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     password?: string;
     stream: StreamType;
     language?: Language;
-  }): Promise<{ success: boolean; user?: UserAccount; error?: string }> => {
+  }): Promise<{ success: boolean; user?: UserAccount; requiresVerification?: boolean; error?: string }> => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = fullName.trim();
 
-    if (!cleanEmail || !cleanName) {
-      return { success: false, error: 'Veuillez renseigner tous les champs obligatoires.' };
+    if (!cleanName || cleanName.length < 2) {
+      return { success: false, error: 'Veuillez renseigner votre nom complet (au moins 2 caractères).' };
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+      return { success: false, error: "Format d'adresse email invalide." };
+    }
+
+    if (!password || password.length < 6) {
+      return { success: false, error: 'Le mot de passe doit comporter au moins 6 caractères.' };
+    }
+
+    // If Supabase is active, register with Supabase Auth
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: cleanEmail,
+          password,
+          options: {
+            data: {
+              full_name: cleanName,
+              stream,
+              language,
+            },
+            emailRedirectTo: getAuthRedirectUrl(),
+          },
+        });
+
+        if (error) {
+          const msg = error.message.toLowerCase();
+          if (
+            msg.includes('already registered') ||
+            msg.includes('already exists') ||
+            msg.includes('user already exists')
+          ) {
+            return { success: false, error: 'Un compte avec cette adresse email existe déjà.' };
+          }
+          if (error.status === 429 || msg.includes('rate limit')) {
+            return { success: false, error: 'Trop de tentatives. Veuillez patienter un instant avant de réessayer.' };
+          }
+          return { success: false, error: error.message };
+        }
+
+        if (data.user) {
+          // Supabase duplicate check for existing identities
+          if (data.user.identities && data.user.identities.length === 0) {
+            return { success: false, error: 'Un compte avec cette adresse email existe déjà.' };
+          }
+
+          // If email verification is required and no session yet
+          if (!data.session) {
+            return { success: true, requiresVerification: true };
+          }
+
+          const synced = await syncSupabaseUserProfile(data.user);
+          setShowStudentOnboarding(true);
+          return { success: true, user: synced || undefined };
+        }
+      } catch (err: any) {
+        return { success: false, error: err.message || 'Erreur lors de la création du compte.' };
+      }
+    }
+
+    // Local state fallback for offline development
     const existingUser = users.find((u) => u.email.toLowerCase() === cleanEmail);
     if (existingUser) {
       return { success: false, error: 'Un compte avec cette adresse email existe déjà.' };
@@ -404,28 +599,125 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       stream,
       language,
       avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(cleanName)}`,
+      onboarding_completed: false,
       created_at: new Date().toISOString(),
-      password: password || 'password123',
     };
 
     localStorage.removeItem('bacnext_logged_out');
+    localStorage.removeItem('eosbac_logged_out');
     localStorage.setItem('bacnext_current_user', JSON.stringify(newStudentUser));
+    localStorage.setItem('eosbac_current_user', JSON.stringify(newStudentUser));
     setUsers((prev) => [...prev, newStudentUser]);
     setCurrentUser(newStudentUser);
+    setShowStudentOnboarding(true);
 
-    // If Supabase is active, create in auth and public.profiles
+    return { success: true, user: newStudentUser };
+  };
+
+  // RESET PASSWORD (Supabase Password Recovery)
+  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      return { success: false, error: 'Veuillez renseigner votre adresse email.' };
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return { success: false, error: "Format d'adresse email invalide." };
+    }
+
     if (isSupabaseConfigured && supabase) {
       try {
-        await supabase.auth.signUp({
-          email: cleanEmail,
-          password: password || 'password123',
+        const redirectUrl = getAuthRedirectUrl();
+        const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+          redirectTo: redirectUrl,
         });
-      } catch (err) {
-        console.warn('Supabase signup sync failed, kept in local state', err);
+        if (error) {
+          if (error.status === 429 || error.message.toLowerCase().includes('rate limit')) {
+            return { success: false, error: 'Trop de tentatives. Veuillez patienter avant de réessayer.' };
+          }
+          // Anti-enumeration: Always return success for user privacy
+          return { success: true };
+        }
+        return { success: true };
+      } catch (err: any) {
+        return { success: true };
       }
     }
 
-    return { success: true, user: newStudentUser };
+    return { success: true };
+  };
+
+  // UPDATE PASSWORD (for Password Recovery Flow)
+  const updatePassword = async (newPassword: string): Promise<{ success: boolean; error?: string }> => {
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, error: 'Le mot de passe doit comporter au moins 6 caractères.' };
+    }
+
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: false, error: 'Service d’authentification indisponible.' };
+    }
+
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        await syncSupabaseUserProfile(data.user);
+      }
+
+      setIsRecoveryMode(false);
+
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Erreur lors de la mise à jour du mot de passe.' };
+    }
+  };
+
+  // RESEND EMAIL VERIFICATION
+  const resendVerificationEmail = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      return { success: false, error: 'Veuillez saisir votre adresse email.' };
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return { success: false, error: "Format d'adresse email invalide." };
+    }
+
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: false, error: 'Service d’authentification indisponible.' };
+    }
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: cleanEmail,
+        options: {
+          emailRedirectTo: getAuthRedirectUrl(),
+        },
+      });
+
+      if (error) {
+        if (error.status === 429 || error.message.toLowerCase().includes('rate limit')) {
+          return { success: false, error: 'Trop de tentatives. Veuillez patienter avant de réessayer.' };
+        }
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Erreur lors de l’envoi de l’email.' };
+    }
   };
 
   // LOGOUT - Complete Session Destruction
@@ -439,13 +731,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       // Clear React auth state
       setCurrentUser(null);
-      setShowStreamOnboarding(false);
+      setShowStudentOnboarding(false);
+      setIsRecoveryMode(false);
 
       // Wipe local storage keys
       try {
+        localStorage.removeItem('eosbac_current_user');
         localStorage.removeItem('bacnext_current_user');
+        localStorage.setItem('eosbac_logged_out', 'true');
         localStorage.setItem('bacnext_logged_out', 'true');
+        localStorage.removeItem('eosbac_pending_student_onboarding');
+        localStorage.removeItem('bacnext_pending_student_onboarding');
+        localStorage.removeItem('eosbac_pending_stream_onboarding');
         localStorage.removeItem('bacnext_pending_stream_onboarding');
+        localStorage.removeItem('eosbac_role');
         localStorage.removeItem('bacnext_role');
         // Clean any cached tokens
         Object.keys(localStorage).forEach((key) => {
@@ -453,6 +752,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             localStorage.removeItem(key);
           }
         });
+        sessionStorage.clear();
       } catch {}
     }
   };
@@ -464,6 +764,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Accès refusé. Seul un administrateur peut promouvoir des utilisateurs.' };
     }
 
+    // If Supabase is active, execute RPC or update profile first
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error: rpcErr } = await supabase.rpc('promote_user_to_admin', { target_user_id: targetUserId });
+        if (rpcErr) {
+          // Fallback direct update on profiles
+          const { error: updErr } = await supabase.from('profiles').update({ role: 'admin' }).eq('id', targetUserId);
+          if (updErr) {
+            console.error('Failed to promote user in Supabase:', updErr);
+            return { success: false, error: updErr.message };
+          }
+        }
+      } catch (err: any) {
+        const { error: updErr } = await supabase.from('profiles').update({ role: 'admin' }).eq('id', targetUserId);
+        if (updErr) {
+          return { success: false, error: updErr.message || 'Erreur lors de la promotion.' };
+        }
+      }
+    }
+
+    // Only update state after successful database persistence
     setUsers((prev) =>
       prev.map((u) => (u.id === targetUserId ? { ...u, role: 'admin' } : u))
     );
@@ -472,21 +793,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCurrentUser((prev) => (prev ? { ...prev, role: 'admin' } : null));
     }
 
-    // If Supabase is active, execute RPC or update profile
-    if (isSupabaseConfigured && supabase) {
-      try {
-        await supabase.rpc('promote_user_to_admin', { target_user_id: targetUserId });
-      } catch (err: any) {
-        // Fallback update
-        await supabase.from('profiles').update({ role: 'admin' }).eq('id', targetUserId);
-      }
-    }
-
+    await refreshUsers();
     return { success: true };
   };
 
   // DEMOTE ADMIN TO STUDENT
-  // Guarded: Only admins can call this, and an admin CANNOT demote themselves!
+  // Guarded: Only admins can call this, and an admin CANNOT demote themselves or the last admin!
   const demoteAdminToStudent = async (targetUserId: string): Promise<{ success: boolean; error?: string }> => {
     if (!isAdmin) {
       return { success: false, error: 'Accès refusé. Seul un administrateur peut modifier les rôles.' };
@@ -499,18 +811,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     }
 
+    const currentAdminsCount = users.filter((u) => u.role === 'admin').length;
+    if (currentAdminsCount <= 1) {
+      return {
+        success: false,
+        error: 'Action interdite : impossible de rétrograder le dernier administrateur de la plateforme.',
+      };
+    }
+
+    // If Supabase is active, execute RPC or update profile first
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error: rpcErr } = await supabase.rpc('demote_admin_to_student', { target_user_id: targetUserId });
+        if (rpcErr) {
+          const { error: updErr } = await supabase.from('profiles').update({ role: 'student' }).eq('id', targetUserId);
+          if (updErr) {
+            console.error('Failed to demote user in Supabase:', updErr);
+            return { success: false, error: updErr.message };
+          }
+        }
+      } catch (err: any) {
+        const { error: updErr } = await supabase.from('profiles').update({ role: 'student' }).eq('id', targetUserId);
+        if (updErr) {
+          return { success: false, error: updErr.message || 'Erreur lors de la modification du rôle.' };
+        }
+      }
+    }
+
+    // Only update state after successful database persistence
     setUsers((prev) =>
       prev.map((u) => (u.id === targetUserId ? { ...u, role: 'student' } : u))
     );
 
-    if (isSupabaseConfigured && supabase) {
-      try {
-        await supabase.rpc('demote_admin_to_student', { target_user_id: targetUserId });
-      } catch (err: any) {
-        await supabase.from('profiles').update({ role: 'student' }).eq('id', targetUserId);
-      }
-    }
-
+    await refreshUsers();
     return { success: true };
   };
 
@@ -520,6 +853,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     stream?: StreamType;
     language?: Language;
     avatarUrl?: string;
+    dream?: string;
+    goal?: string;
+    targetScore?: string;
+    studyFocus?: string;
   }): Promise<{ success: boolean; error?: string }> => {
     if (!currentUser) {
       return { success: false, error: 'Utilisateur non authentifié' };
@@ -531,6 +868,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ...(data.stream !== undefined ? { stream: data.stream } : {}),
       ...(data.language !== undefined ? { language: data.language } : {}),
       ...(data.avatarUrl !== undefined ? { avatar_url: data.avatarUrl.trim() } : {}),
+      ...(data.dream !== undefined ? { dream: data.dream.trim() } : {}),
+      ...(data.goal !== undefined ? { goal: data.goal.trim() } : {}),
+      ...(data.targetScore !== undefined ? { target_score: data.targetScore.trim() } : {}),
+      ...(data.studyFocus !== undefined ? { study_focus: data.studyFocus.trim() } : {}),
       // role and id are strictly immutable for students!
     };
 
@@ -541,6 +882,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (data.stream !== undefined) payload.stream = data.stream;
         if (data.language !== undefined) payload.language = data.language;
         if (data.avatarUrl !== undefined) payload.avatar_url = data.avatarUrl.trim();
+        if (data.dream !== undefined) payload.dream = data.dream.trim();
+        if (data.goal !== undefined) payload.goal = data.goal.trim();
+        if (data.targetScore !== undefined) payload.target_score = data.targetScore.trim();
+        if (data.studyFocus !== undefined) payload.study_focus = data.studyFocus.trim();
 
         const { error } = await supabase
           .from('profiles')
@@ -561,6 +906,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUsers((prev) => prev.map((u) => (u.id === currentUser.id ? updatedUser : u)));
     try {
       localStorage.setItem('bacnext_current_user', JSON.stringify(updatedUser));
+      localStorage.setItem('eosbac_current_user', JSON.stringify(updatedUser));
     } catch {}
 
     return { success: true };
@@ -572,15 +918,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return {
         success: false,
         error:
-          'Supabase n\'est pas encore configuré. Renseignez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY dans vos variables d\'environnement pour activer l\'authentification Google.',
+          "Supabase n'est pas encore configuré. Renseignez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY dans vos variables d'environnement pour activer l'authentification Google.",
       };
     }
 
     try {
+      const redirectUrl = getAuthRedirectUrl();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: redirectUrl,
         },
       });
 
@@ -600,34 +947,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // COMPLETE STREAM ONBOARDING
-  const completeStreamOnboarding = async (stream: StreamType) => {
+  // COMPLETE STUDENT ONBOARDING (Stream, Dream, Goal, Target Score)
+  const completeStudentOnboarding = async (data: {
+    stream: StreamType;
+    dream: string;
+    goal: string;
+    targetScore?: string;
+    studyFocus?: string;
+  }) => {
     if (!currentUser) return;
 
     const updated: UserAccount = {
       ...currentUser,
-      stream,
+      stream: data.stream,
+      dream: data.dream.trim(),
+      goal: data.goal.trim(),
+      target_score: data.targetScore ? data.targetScore.trim() : currentUser.target_score,
+      study_focus: data.studyFocus ? data.studyFocus.trim() : currentUser.study_focus,
+      onboarding_completed: true,
     };
 
     setCurrentUser(updated);
     setUsers((prev) => prev.map((u) => (u.id === currentUser.id ? updated : u)));
-    setShowStreamOnboarding(false);
+    setShowStudentOnboarding(false);
 
-    // 10. Save the selected stream to the existing profile in Supabase
+    try {
+      localStorage.setItem('eosbac_pending_student_onboarding', 'false');
+      localStorage.setItem('bacnext_pending_student_onboarding', 'false');
+      localStorage.setItem('eosbac_current_user', JSON.stringify(updated));
+      localStorage.setItem('bacnext_current_user', JSON.stringify(updated));
+    } catch {}
+
+    // Persist to Supabase Database
     if (isSupabaseConfigured && supabase) {
       try {
         const { error } = await supabase
           .from('profiles')
-          .update({ stream })
+          .update({
+            stream: data.stream,
+            dream: data.dream.trim(),
+            goal: data.goal.trim(),
+            target_score: data.targetScore ? data.targetScore.trim() : null,
+            study_focus: data.studyFocus ? data.studyFocus.trim() : null,
+            onboarding_completed: true,
+          })
           .eq('id', currentUser.id);
 
         if (error) {
-          console.error('Error saving stream to Supabase profile:', error);
+          console.error('Error saving onboarding data to Supabase:', error);
         }
       } catch (err) {
-        console.error('Failed to update stream in Supabase:', err);
+        console.error('Failed to update onboarding in Supabase:', err);
       }
     }
+  };
+
+  // COMPLETE STREAM ONBOARDING (Backwards compatibility)
+  const completeStreamOnboarding = async (stream: StreamType) => {
+    await completeStudentOnboarding({
+      stream,
+      dream: currentUser?.dream || '',
+      goal: currentUser?.goal || '',
+      targetScore: currentUser?.target_score,
+      studyFocus: currentUser?.study_focus,
+    });
   };
 
   // Quick switch between accounts (helpful for testing admin vs student in the preview)
@@ -646,11 +1029,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin,
         isStudent,
         users,
+        isLoadingUsers,
+        refreshUsers,
+        showStudentOnboarding,
+        setShowStudentOnboarding,
+        completeStudentOnboarding,
         showStreamOnboarding,
         setShowStreamOnboarding,
         completeStreamOnboarding,
         login,
         signup,
+        resetPassword,
+        updatePassword,
+        resendVerificationEmail,
+        isRecoveryMode,
+        setIsRecoveryMode,
         loginWithGoogle,
         logout,
         promoteUserToAdmin,

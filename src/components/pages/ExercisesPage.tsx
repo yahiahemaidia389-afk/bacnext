@@ -63,20 +63,20 @@ export const ExercisesPage: React.FC<ExercisesPageProps> = ({
     if (d === 'easy' || d === 'facile') {
       return (
         <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-          {isArabic ? 'سهل' : 'Facile'}
+          {isArabic ? 'سهل' : (language === 'en' ? 'Easy' : 'Facile')}
         </span>
       );
     }
     if (d === 'hard' || d === 'difficile') {
       return (
         <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-          {isArabic ? 'صعب' : 'Difficile'}
+          {isArabic ? 'صعب' : (language === 'en' ? 'Hard' : 'Difficile')}
         </span>
       );
     }
     return (
       <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-        {isArabic ? 'متوسط' : 'Moyen'}
+        {isArabic ? 'متوسط' : (language === 'en' ? 'Medium' : 'Moyen')}
       </span>
     );
   };
@@ -91,20 +91,20 @@ export const ExercisesPage: React.FC<ExercisesPageProps> = ({
               <FileCheck2 className="w-5 h-5" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              {isArabic ? 'التمارين' : 'Exercices'}
+              {isArabic ? 'التمارين' : (language === 'en' ? 'Exercises' : 'Exercices')}
             </h1>
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             {isArabic
               ? 'تمارين تطبيقية متدرجة الصعوبة مع حلول نموذجية للمراجعة الفعالة.'
-              : 'Exercices d’application classés par difficulté avec corrigés détaillés.'}
+              : (language === 'en' ? 'Practice exercises ranked by difficulty with detailed model solutions.' : 'Exercices d’application classés par difficulté avec corrigés détaillés.')}
           </p>
         </div>
 
         <div className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 self-start sm:self-center">
           {currentStream === 'sciences_experimentales'
-            ? (isArabic ? '🔬 علوم تجريبية' : '🔬 Sciences Exp.')
-            : (isArabic ? '📐 رياضيات' : '📐 Maths')}
+            ? (isArabic ? '🔬 علوم تجريبية' : (language === 'en' ? '🔬 Experimental Sciences' : '🔬 Sciences Exp.'))
+            : (isArabic ? '📐 رياضيات' : (language === 'en' ? '📐 Mathematics' : '📐 Maths'))}
         </div>
       </div>
 
@@ -117,7 +117,7 @@ export const ExercisesPage: React.FC<ExercisesPageProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={isArabic ? 'ابحث في التمارين والمفاهيم...' : 'Rechercher un exercice...'}
+            placeholder={isArabic ? 'ابحث في التمارين والمفاهيم...' : (language === 'en' ? 'Search for an exercise...' : 'Rechercher un exercice...')}
             className={`w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 focus:bg-white dark:focus:bg-slate-900 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
               isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'
             }`}
@@ -134,7 +134,7 @@ export const ExercisesPage: React.FC<ExercisesPageProps> = ({
                 : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
             }`}
           >
-            {isArabic ? 'جميع المواد' : 'Toutes les matières'}
+            {isArabic ? 'جميع المواد' : (language === 'en' ? 'All subjects' : 'Toutes les matières')}
           </button>
           {activeSubjects.map((sub) => (
             <button
@@ -154,7 +154,7 @@ export const ExercisesPage: React.FC<ExercisesPageProps> = ({
         {/* Difficulty & Solution toggles */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
           <div className="flex items-center gap-2">
-            <span className="text-slate-400 dark:text-slate-500 font-medium">{isArabic ? 'الصعوبة:' : 'Difficulté:'}</span>
+            <span className="text-slate-400 dark:text-slate-500 font-medium">{isArabic ? 'الصعوبة:' : (language === 'en' ? 'Difficulty:' : 'Difficulté :')}</span>
             {(['all', 'easy', 'medium', 'hard'] as const).map((diff) => (
               <button
                 key={diff}
@@ -166,12 +166,12 @@ export const ExercisesPage: React.FC<ExercisesPageProps> = ({
                 }`}
               >
                 {diff === 'all'
-                  ? (isArabic ? 'الكل' : 'Tous')
+                  ? (isArabic ? 'الكل' : (language === 'en' ? 'All' : 'Tous'))
                   : diff === 'easy'
-                  ? (isArabic ? 'سهل' : 'Facile')
+                  ? (isArabic ? 'سهل' : (language === 'en' ? 'Easy' : 'Facile'))
                   : diff === 'medium'
-                  ? (isArabic ? 'متوسط' : 'Moyen')
-                  : (isArabic ? 'صعب' : 'Difficile')}
+                  ? (isArabic ? 'متوسط' : (language === 'en' ? 'Medium' : 'Moyen'))
+                  : (isArabic ? 'صعب' : (language === 'en' ? 'Hard' : 'Difficile'))}
               </button>
             ))}
           </div>
@@ -185,7 +185,7 @@ export const ExercisesPage: React.FC<ExercisesPageProps> = ({
                   : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
             >
-              {isArabic ? 'مع الحل فقط' : 'Avec corrigé uniquement'}
+              {isArabic ? 'مع الحل فقط' : (language === 'en' ? 'With solution only' : 'Avec corrigé uniquement')}
             </button>
           </div>
         </div>
@@ -194,8 +194,8 @@ export const ExercisesPage: React.FC<ExercisesPageProps> = ({
       {/* Exercises list */}
       {filteredExercises.length === 0 ? (
         <EmptyState
-          title={isArabic ? 'لا توجد تمارين مطابقة' : 'Aucun exercice trouvé'}
-          description={isArabic ? 'جرب ضبط معايير الفلترة أو اختيار مادة أخرى.' : 'Modifie tes critères de recherche pour trouver des exercices.'}
+          title={isArabic ? 'لا توجد تمارين مطابقة' : (language === 'en' ? 'No exercises found' : 'Aucun exercice trouvé')}
+          description={isArabic ? 'جرب ضبط معايير الفلترة أو اختيار مادة أخرى.' : (language === 'en' ? 'Adjust your filters to find exercises.' : 'Modifie tes critères de recherche pour trouver des exercices.')}
           icon="exercise"
         />
       ) : (
@@ -216,7 +216,7 @@ export const ExercisesPage: React.FC<ExercisesPageProps> = ({
                     {/* Toggle Completed button */}
                     <button
                       onClick={() => toggleExerciseCompleted(ex.id)}
-                      title={ex.isCompleted ? (isArabic ? 'تحديد كغير محلول' : 'Marquer non résolu') : (isArabic ? 'تحديد كمحلول' : 'Marquer résolu')}
+                      title={ex.isCompleted ? (isArabic ? 'تحديد كغير محلول' : (language === 'en' ? 'Mark unresolved' : 'Marquer non résolu')) : (isArabic ? 'تحديد كمحلول' : (language === 'en' ? 'Mark resolved' : 'Marquer résolu'))}
                       className={`mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 cursor-pointer ${
                         ex.isCompleted
                           ? 'bg-emerald-500 text-white shadow-xs'
@@ -234,17 +234,17 @@ export const ExercisesPage: React.FC<ExercisesPageProps> = ({
                         {getDifficultyBadge(ex.difficulty)}
                         {ex.hasSolution ? (
                           <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                            {isArabic ? 'مرفق بالحل' : 'Avec corrigé'}
+                            {isArabic ? 'مرفق بالحل' : (language === 'en' ? 'With solution' : 'Avec corrigé')}
                           </span>
                         ) : (
                           <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                            {isArabic ? 'بدون حل' : 'Sans corrigé'}
+                            {isArabic ? 'بدون حل' : (language === 'en' ? 'Without solution' : 'Sans corrigé')}
                           </span>
                         )}
                         {ex.isCompleted && (
                           <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" />
-                            <span>{isArabic ? 'تم الحل' : 'Résolu'}</span>
+                            <span>{isArabic ? 'تم الحل' : (language === 'en' ? 'Resolved' : 'Résolu')}</span>
                           </span>
                         )}
                       </div>
@@ -271,7 +271,7 @@ export const ExercisesPage: React.FC<ExercisesPageProps> = ({
                           : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
                       }`}
                     >
-                      <span>{isExpanded ? (isArabic ? 'إخفاء التمرين' : 'Masquer') : (isArabic ? 'عرض التمرين والحل' : 'Voir l’exercice')}</span>
+                      <span>{isExpanded ? (isArabic ? 'إخفاء التمرين' : (language === 'en' ? 'Hide' : 'Masquer')) : (isArabic ? 'عرض التمرين والحل' : (language === 'en' ? 'View exercise and solution' : 'Voir l’exercice'))}</span>
                       {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                     </button>
                   </div>
@@ -283,10 +283,10 @@ export const ExercisesPage: React.FC<ExercisesPageProps> = ({
                     {/* Problem statement */}
                     <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
                       <div className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                        {isArabic ? 'نص التمرين' : 'Énoncé de l’exercice'}
+                        {isArabic ? 'نص التمرين' : (language === 'en' ? 'Exercise problem statement' : 'Énoncé de l’exercice')}
                       </div>
                       <div className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line font-mono sm:font-sans">
-                        {ex.description || (isArabic ? 'نص التمرين النموذجي المقترح في هذا الفصل.' : 'Énoncé détaillé du problème.')}
+                        {ex.description || (isArabic ? 'نص التمرين النموذجي المقترح في هذا الفصل.' : (language === 'en' ? 'Detailed problem statement for this chapter.' : 'Énoncé détaillé du problème.'))}
                       </div>
                     </div>
 
@@ -295,7 +295,7 @@ export const ExercisesPage: React.FC<ExercisesPageProps> = ({
                       <div className="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 space-y-2">
                         <div className="text-xs font-bold uppercase text-emerald-800 dark:text-emerald-300 tracking-wider flex items-center gap-1.5">
                           <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                          <span>{isArabic ? 'الحل النموذجي والتنقيط' : 'Corrigé type & Barème'}</span>
+                          <span>{isArabic ? 'الحل النموذجي والتنقيط' : (language === 'en' ? 'Model Solution & Scale' : 'Corrigé type & Barème')}</span>
                         </div>
                         <div className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line font-mono sm:font-sans">
                           {ex.solution}

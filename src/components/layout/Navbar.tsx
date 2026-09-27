@@ -19,6 +19,7 @@ import {
   Check,
   Globe,
   LogIn,
+  Users,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -55,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const realName =
     currentUser?.full_name ||
     profile?.name ||
-    (isArabic ? 'تلميذ البكالوريا' : 'Étudiant');
+    (isArabic ? 'تلميذ البكالوريا' : (language === 'en' ? 'Student' : 'Étudiant'));
 
   const avatarUrl =
     currentUser?.avatar_url ||
@@ -95,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={() => onNavigate('dashboard')}
             className="flex items-center focus:outline-none"
-            aria-label="BacNext"
+            aria-label="EOS BAC"
           >
             <BrandLogo size="sm" showTagline={false} />
           </button>
@@ -110,7 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <Search className="w-4 h-4 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors shrink-0" />
           <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 select-none">
-            {isArabic ? 'بحث عن درس، تمرين، موضوع بكالوريا...' : 'Rechercher un cours, exercice, sujet du BAC...'}
+            {isArabic ? 'بحث عن درس، تمرين، موضوع بكالوريا...' : (language === 'en' ? 'Search for a lesson, exercise, BAC past exam...' : 'Rechercher un cours, exercice, sujet du BAC...')}
           </span>
           <span className="hidden sm:inline-block ms-auto text-[10px] font-bold text-slate-400 dark:text-slate-400 bg-white dark:bg-[#131B2E] px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
             ⌘K
@@ -188,7 +189,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={toggleTheme}
           aria-label={isDark ? (t.theme.lightMode || 'Mode clair') : (t.theme.darkMode || 'Mode sombre')}
           className="relative w-9 h-9 rounded-full flex items-center justify-center text-slate-600 dark:text-amber-400 hover:text-slate-900 dark:hover:text-amber-300 bg-[#F1F5F9] dark:bg-[#1A243B] hover:bg-slate-200/70 dark:hover:bg-[#22304E] border border-slate-200/80 dark:border-slate-700/80 transition-all duration-200 active:scale-95 cursor-pointer shadow-2xs group"
-          title={isDark ? (t.theme.lightMode || (isArabic ? 'الوضع النهاري' : 'Mode clair')) : (t.theme.darkMode || (isArabic ? 'الوضع الليلي' : 'Mode sombre'))}
+          title={isDark ? (t.theme.lightMode || (isArabic ? 'الوضع النهاري' : (language === 'en' ? 'Light mode' : 'Mode clair'))) : (t.theme.darkMode || (isArabic ? 'الوضع الليلي' : (language === 'en' ? 'Dark mode' : 'Mode sombre')))}
         >
           {isDark ? (
             <Sun className="w-4 h-4 text-amber-400 transition-transform duration-500 rotate-0 group-hover:rotate-90" />
@@ -223,12 +224,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                <span>{isArabic ? 'إشعارات منصة باك نكست' : 'Notifications BacNext'}</span>
+                <span>{isArabic ? 'إشعارات منصة EOS BAC' : (language === 'en' ? 'EOS BAC Notifications' : 'Notifications EOS BAC')}</span>
               </div>
               <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
                 {isArabic
                   ? 'تم تحديث برنامج التحضير لبكالوريا 2027. واصل المراجعة بانتظام!'
-                  : 'Le programme de révision du BAC 2027 est prêt. Continue tes efforts !'}
+                  : (language === 'en' ? 'The BAC revision schedule is ready. Keep up your efforts!' : 'Le programme de révision du BAC 2027 est prêt. Continue tes efforts !')}
               </p>
             </div>
           )}
@@ -243,7 +244,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="min-h-[36px] px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <LogIn className="w-3.5 h-3.5 shrink-0" />
-            <span>{isArabic ? 'تسجيل الدخول' : 'Connexion'}</span>
+            <span>{isArabic ? 'تسجيل الدخول' : (language === 'en' ? 'Sign in' : 'Connexion')}</span>
           </button>
         ) : (
           <div className="relative" ref={userMenuRef}>
@@ -274,20 +275,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-700/80">
                   <div className="font-bold text-slate-900 dark:text-slate-100 truncate">{realName}</div>
                   <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                    {currentUser?.email || (isArabic ? 'حساب تلميذ مجاني' : 'Compte étudiant')}
+                    {currentUser?.email || (isArabic ? 'حساب تلميذ مجاني' : (language === 'en' ? 'Student account' : 'Compte étudiant'))}
                   </div>
                 </div>
 
                 {/* Stream switch option in menu */}
                 <div className="px-3 py-2 bg-slate-50 dark:bg-[#141C2E] rounded-xl my-1 border border-transparent dark:border-slate-800">
                   <div className="text-[10px] text-slate-400 dark:text-slate-400 font-bold uppercase tracking-wider">
-                    {isArabic ? 'شعبتك الحالية' : 'Filière actuelle'}
+                    {isArabic ? 'شعبتك الحالية' : (language === 'en' ? 'Current stream' : 'Filière actuelle')}
                   </div>
                   <div className="flex items-center justify-between mt-1">
                     <span className="font-bold text-slate-900 dark:text-slate-100 text-xs">
                       {currentStream === 'sciences_experimentales'
-                        ? (isArabic ? '🔬 علوم تجريبية' : '🔬 Sciences Exp.')
-                        : (isArabic ? '📐 رياضيات' : '📐 Mathématiques')}
+                        ? (isArabic ? '🔬 علوم تجريبية' : (language === 'en' ? '🔬 Experimental Sciences' : '🔬 Sciences Exp.'))
+                        : (isArabic ? '📐 رياضيات' : (language === 'en' ? '📐 Mathematics' : '📐 Mathématiques'))}
                     </span>
                     <button
                       onClick={() => {
@@ -300,7 +301,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       }}
                       className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
                     >
-                      {isArabic ? 'تغيير' : 'Changer'}
+                      {isArabic ? 'تغيير' : (language === 'en' ? 'Change' : 'Changer')}
                     </button>
                   </div>
                 </div>
@@ -315,20 +316,32 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#202D4A] transition-colors cursor-pointer"
                 >
                   <UserIcon className="w-4 h-4 text-slate-400" />
-                  <span>{t.profile.title || (isArabic ? 'الملف الشخصي' : 'Mon profil')}</span>
+                  <span>{t.profile.title || (isArabic ? 'الملف الشخصي' : (language === 'en' ? 'My profile' : 'Mon profil'))}</span>
                 </button>
 
                 {isAdmin && (
-                  <button
-                    onClick={() => {
-                      onNavigate('admin');
-                      setIsUserMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-amber-900 dark:text-amber-200 bg-amber-50/80 dark:bg-amber-950/40 hover:bg-amber-100/80 dark:hover:bg-amber-900/50 transition-colors font-semibold cursor-pointer"
-                  >
-                    <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                    <span>{isArabic ? 'لوحة الإدارة' : 'Administration'}</span>
-                  </button>
+                  <>
+                    <button
+                      onClick={() => {
+                        onNavigate('admin', { tab: 'lessons' });
+                        setIsUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-amber-900 dark:text-amber-200 bg-amber-50/80 dark:bg-amber-950/40 hover:bg-amber-100/80 dark:hover:bg-amber-900/50 transition-colors font-semibold cursor-pointer"
+                    >
+                      <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                      <span>{isArabic ? 'إدارة المحتوى (CMS)' : (language === 'en' ? 'Administration (CMS)' : 'Administration (CMS)')}</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        onNavigate('admin-users');
+                        setIsUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-amber-900 dark:text-amber-200 bg-amber-50/80 dark:bg-amber-950/40 hover:bg-amber-100/80 dark:hover:bg-amber-900/50 transition-colors font-semibold cursor-pointer"
+                    >
+                      <Users className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                      <span>{isArabic ? 'المستخدمون' : (language === 'en' ? 'Users' : 'Utilisateurs')}</span>
+                    </button>
+                  </>
                 )}
 
                 {/* Logout button */}
@@ -343,7 +356,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors font-semibold cursor-pointer"
                   >
                     <LogOut className="w-4 h-4" />
-                    <span>{t.profile.logout || (isArabic ? 'تسجيل الخروج' : 'Se déconnecter')}</span>
+                    <span>{t.profile.logout || (isArabic ? 'تسجيل الخروج' : (language === 'en' ? 'Sign out' : 'Se déconnecter'))}</span>
                   </button>
                 </div>
               </div>

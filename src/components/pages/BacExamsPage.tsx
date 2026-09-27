@@ -13,6 +13,8 @@ import {
   Calendar,
   Layers,
   Sparkles,
+  X,
+  Printer,
 } from 'lucide-react';
 
 interface BacExamsPageProps {
@@ -63,42 +65,14 @@ export const BacExamsPage: React.FC<BacExamsPageProps> = ({
     return true;
   });
 
+  const [previewModal, setPreviewModal] = useState<{
+    title: string;
+    type: 'subject' | 'solution';
+    url?: string;
+  } | null>(null);
+
   const handleOpenPdf = (title: string, type: 'subject' | 'solution', url?: string) => {
-    if (url && url.startsWith('http')) {
-      window.open(url, '_blank');
-      return;
-    }
-    // Clean preview document for demonstration
-    const docWindow = window.open('', '_blank');
-    if (docWindow) {
-      docWindow.document.write(`
-        <html dir="${isRTL ? 'rtl' : 'ltr'}">
-          <head>
-            <title>${title} - ${type === 'solution' ? (isArabic ? 'التصحيح النموذجي' : 'Corrigé Type') : (isArabic ? 'موضوع الامتحان' : 'Épreuve Officielle')} | BacNext</title>
-            <style>
-              body { font-family: system-ui, sans-serif; padding: 40px; color: #0f172a; line-height: 1.6; max-width: 800px; margin: 0 auto; }
-              .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 24px; }
-              .badge { display: inline-block; padding: 4px 10px; background: #e0f2fe; color: #0369a1; border-radius: 6px; font-size: 12px; font-weight: bold; }
-              .box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-top: 20px; }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <span class="badge">BacNext Exam Viewer</span>
-              <h1>${title}</h1>
-              <h3>${type === 'solution' ? (isArabic ? 'سلم التنقيط والتصحيح النموذجي الوزاري' : 'Corrigé Type et Barème Officiel') : (isArabic ? 'الموضوع الرسمي لشهادة البكالوريا' : 'Sujet Officiel du Baccalauréat')}</h3>
-            </div>
-            <div class="box">
-              <p><strong>${isArabic ? 'الدورة:' : 'Session:'}</strong> ${title}</p>
-              <p><strong>${isArabic ? 'الشعبة:' : 'Filière:'}</strong> ${activeStream === 'sciences_experimentales' ? 'العلوم التجريبية' : 'الرياضيات'}</p>
-              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0;" />
-              <p>${isArabic ? 'يحتوي هذا المستند على موضوع الامتحان الرسمي مع كافة الأسئلة والتمارين المقررة.' : 'Ce document contient l’énoncé officiel complet conforme au barème ministériel.'}</p>
-            </div>
-          </body>
-        </html>
-      `);
-      docWindow.document.close();
-    }
+    setPreviewModal({ title, type, url });
   };
 
   return (
@@ -111,13 +85,13 @@ export const BacExamsPage: React.FC<BacExamsPageProps> = ({
               <BookmarkCheck className="w-5 h-5" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              {isArabic ? 'مواضيع البكالوريا' : 'Sujets du BAC'}
+              {isArabic ? 'مواضيع البكالوريا' : (language === 'en' ? 'BAC Exams' : 'Sujets du BAC')}
             </h1>
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             {isArabic
               ? 'مواضيع الدورات السابقة مع مواضيع وحلول PDF رسمية وسلم تنقيط معتمد.'
-              : 'Annales officielles avec sujets et corrigés PDF conformes aux barèmes ministériels.'}
+              : (language === 'en' ? 'Official past exams with PDF subjects and solutions complying with ministerial grading scales.' : 'Annales officielles avec sujets et corrigés PDF conformes aux barèmes ministériels.')}
           </p>
         </div>
 
@@ -131,7 +105,7 @@ export const BacExamsPage: React.FC<BacExamsPageProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            {isArabic ? '🔬 علوم تجريبية' : '🔬 Sciences Exp.'}
+            {isArabic ? '🔬 علوم تجريبية' : (language === 'en' ? '🔬 Experimental Sciences' : '🔬 Sciences Exp.')}
           </button>
           <button
             onClick={() => setActiveStream('mathematiques')}
@@ -141,7 +115,7 @@ export const BacExamsPage: React.FC<BacExamsPageProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            {isArabic ? '📐 رياضيات' : '📐 Maths'}
+            {isArabic ? '📐 رياضيات' : (language === 'en' ? '📐 Mathematics' : '📐 Maths')}
           </button>
         </div>
       </div>
@@ -155,7 +129,7 @@ export const BacExamsPage: React.FC<BacExamsPageProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={isArabic ? 'ابحث عن دورة أو مادة أو موضوع...' : 'Rechercher une année, une matière...'}
+            placeholder={isArabic ? 'ابحث عن دورة أو مادة أو موضوع...' : (language === 'en' ? 'Search for a year, subject...' : 'Rechercher une année, une matière...')}
             className={`w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 focus:bg-white dark:focus:bg-slate-900 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all ${
               isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'
             }`}
@@ -164,7 +138,7 @@ export const BacExamsPage: React.FC<BacExamsPageProps> = ({
 
         {/* Year Pills Filter */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
-          <span className="text-slate-400 dark:text-slate-500 font-bold shrink-0 px-1">{isArabic ? 'السنة:' : 'Année:'}</span>
+          <span className="text-slate-400 dark:text-slate-500 font-bold shrink-0 px-1">{isArabic ? 'السنة:' : (language === 'en' ? 'Year:' : 'Année :')}</span>
           <button
             onClick={() => setSelectedYear('all')}
             className={`px-3 py-1.5 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
@@ -173,7 +147,7 @@ export const BacExamsPage: React.FC<BacExamsPageProps> = ({
                 : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
             }`}
           >
-            {isArabic ? 'جميع السنوات' : 'Toutes les années'}
+            {isArabic ? 'جميع السنوات' : (language === 'en' ? 'All years' : 'Toutes les années')}
           </button>
           {availableYears.map((yr) => (
             <button
@@ -192,7 +166,7 @@ export const BacExamsPage: React.FC<BacExamsPageProps> = ({
 
         {/* Subject Filter */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs pt-1 border-t border-slate-100 dark:border-slate-800">
-          <span className="text-slate-400 dark:text-slate-500 font-bold shrink-0 px-1">{isArabic ? 'المادة:' : 'Matière:'}</span>
+          <span className="text-slate-400 dark:text-slate-500 font-bold shrink-0 px-1">{isArabic ? 'المادة:' : (language === 'en' ? 'Subject:' : 'Matière :')}</span>
           <button
             onClick={() => setSelectedSubjectId('all')}
             className={`px-3 py-1.5 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
@@ -201,7 +175,7 @@ export const BacExamsPage: React.FC<BacExamsPageProps> = ({
                 : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
             }`}
           >
-            {isArabic ? 'جميع المواد' : 'Toutes'}
+            {isArabic ? 'جميع المواد' : (language === 'en' ? 'All subjects' : 'Toutes')}
           </button>
           {activeSubjects.map((sub) => (
             <button
@@ -222,8 +196,8 @@ export const BacExamsPage: React.FC<BacExamsPageProps> = ({
       {/* Clear List of BAC Subjects */}
       {filteredExams.length === 0 ? (
         <EmptyState
-          title={isArabic ? 'لا توجد مواضيع مطابقة' : 'Aucun sujet trouvé'}
-          description={isArabic ? 'جرب اختيار سنة أخرى أو تغيير الشعبة.' : 'Essaie de sélectionner une autre année ou une autre filière.'}
+          title={isArabic ? 'لا توجد مواضيع مطابقة' : (language === 'en' ? 'No exams found' : 'Aucun sujet trouvé')}
+          description={isArabic ? 'جرب اختيار سنة أخرى أو تغيير الشعبة.' : (language === 'en' ? 'Try selecting another year or stream.' : 'Essaie de sélectionner une autre année ou une autre filière.')}
           icon="document"
         />
       ) : (
@@ -233,8 +207,8 @@ export const BacExamsPage: React.FC<BacExamsPageProps> = ({
             const subjectTitle = isArabic && subject ? subject.arabicName : (subject?.name || 'Matière');
             const streamLabel =
               exam.stream === 'sciences_experimentales'
-                ? (isArabic ? 'علوم تجريبية' : 'Sciences Exp.')
-                : (isArabic ? 'رياضيات' : 'Mathématiques');
+                ? (isArabic ? 'علوم تجريبية' : (language === 'en' ? 'Experimental Sciences' : 'Sciences Exp.'))
+                : (isArabic ? 'رياضيات' : (language === 'en' ? 'Mathematics' : 'Mathématiques'));
 
             return (
               <div
@@ -272,25 +246,131 @@ export const BacExamsPage: React.FC<BacExamsPageProps> = ({
                   <button
                     onClick={() => handleOpenPdf(exam.title, 'subject', exam.pdfUrl)}
                     className="py-2 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
-                    title={isArabic ? 'تحميل أو عرض موضوع الامتحان' : 'Consulter le sujet officiel'}
+                    title={isArabic ? 'تحميل أو عرض موضوع الامتحان' : (language === 'en' ? 'View official exam' : 'Consulter le sujet officiel')}
                   >
                     <FileText className="w-3.5 h-3.5" />
-                    <span>{isArabic ? 'موضوع PDF' : 'Sujet PDF'}</span>
+                    <span>{isArabic ? 'موضوع PDF' : (language === 'en' ? 'Exam PDF' : 'Sujet PDF')}</span>
                   </button>
 
                   {/* Solution PDF */}
                   <button
                     onClick={() => handleOpenPdf(exam.title, 'solution', exam.correctionUrl)}
                     className="py-2 px-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-                    title={isArabic ? 'تحميل أو عرض التصحيح النموذجي' : 'Consulter le corrigé officiel'}
+                    title={isArabic ? 'تحميل أو عرض التصحيح النموذجي' : (language === 'en' ? 'View official solution' : 'Consulter le corrigé officiel')}
                   >
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span>{isArabic ? 'الحل النموذجي' : 'Corrigé PDF'}</span>
+                    <span>{isArabic ? 'الحل النموذجي' : (language === 'en' ? 'Solution PDF' : 'Corrigé PDF')}</span>
                   </button>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* In-App Document / PDF Preview Modal (Zero window.open, secure & accessible) */}
+      {previewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/80 backdrop-blur-xs animate-in fade-in">
+          <div className="relative w-full max-w-2xl max-h-[85vh] rounded-3xl bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden transition-colors">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white truncate">
+                    {previewModal.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {previewModal.type === 'solution'
+                      ? isArabic ? 'التصحيح النموذجي وسلم التنقيط المعتمد' : (language === 'en' ? 'Official Model Solution & Grading Scale' : 'Corrigé Type et Barème Officiel')
+                      : isArabic ? 'الموضوع الرسمي لشهادة البكالوريا' : (language === 'en' ? 'Official Baccalaureate Exam' : 'Sujet Officiel du Baccalauréat')}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setPreviewModal(null)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-4 text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+              {previewModal.url && previewModal.url.startsWith('http') ? (
+                <div className="space-y-4">
+                  <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 aspect-4/3 bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+                    <iframe
+                      src={previewModal.url}
+                      title={previewModal.title}
+                      className="w-full h-full"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="flex justify-end">
+                    <a
+                      href={previewModal.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>{isArabic ? 'تحميل الملف المباشر' : (language === 'en' ? 'Download document' : 'Télécharger le document')}</span>
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                      <span>{isArabic ? 'المرجع البيداغوجي:' : (language === 'en' ? 'Educational reference:' : 'Référence pédagogique :')}</span>
+                      <span className="font-mono font-bold text-slate-700 dark:text-slate-200">BAC ALGÉRIE</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                      <span>{isArabic ? 'الشعبة المعنية:' : (language === 'en' ? 'Stream:' : 'Filière :')}</span>
+                      <span className="font-semibold text-blue-600 dark:text-blue-400">
+                        {activeStream === 'sciences_experimentales'
+                          ? isArabic ? 'العلوم التجريبية' : (language === 'en' ? 'Experimental Sciences' : 'Sciences Expérimentales')
+                          : isArabic ? 'الرياضيات' : (language === 'en' ? 'Mathematics' : 'Mathématiques')}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-5 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-amber-50/30 dark:bg-amber-950/20 text-center space-y-2">
+                    <CheckCircle2 className="w-8 h-8 text-amber-600 dark:text-amber-400 mx-auto" />
+                    <h4 className="font-bold text-slate-900 dark:text-white">
+                      {isArabic ? 'المستند جاهز للمراجعة والطباعة' : (language === 'en' ? 'Official document ready for study and print' : 'Document officiel prêt à la révision')}
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                      {isArabic
+                        ? 'يتضمن هذا النموذج الأسئلة الكاملة مع إرشادات سلم التنقيط المعتمد من المفتشية العامة للبيداغوجيا.'
+                        : (language === 'en' ? 'Includes complete problem statement and methodological guidelines conforming to official grading scale.' : 'Comprend l’énoncé complet et les consignes méthodologiques conformes au barème officiel de correction.')}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+              <button
+                onClick={() => window.print()}
+                className="py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors"
+              >
+                <Printer className="w-4 h-4 text-slate-500" />
+                <span>{isArabic ? 'طباعة' : (language === 'en' ? 'Print' : 'Imprimer')}</span>
+              </button>
+
+              <button
+                onClick={() => setPreviewModal(null)}
+                className="py-2.5 px-5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                {isArabic ? 'إغلاق' : (language === 'en' ? 'Close' : 'Fermer')}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

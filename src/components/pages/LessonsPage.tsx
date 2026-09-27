@@ -67,21 +67,21 @@ export const LessonsPage: React.FC<LessonsPageProps> = ({
               <BookOpen className="w-5 h-5" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              {isArabic ? 'الدروس' : 'Cours'}
+              {isArabic ? 'الدروس' : (language === 'en' ? 'Lessons' : 'Cours')}
             </h1>
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             {isArabic
               ? 'دروس منظمة حسب المواد والوحدات التعليمية مع متابعة الإنجاز.'
-              : 'Tous les cours organisés par matière et chapitre avec suivi de complétion.'}
+              : (language === 'en' ? 'All lessons organized by subject and chapter with completion tracking.' : 'Tous les cours organisés par matière et chapitre avec suivi de complétion.')}
           </p>
         </div>
 
         {/* Stream indicator */}
         <div className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 self-start sm:self-center">
           {currentStream === 'sciences_experimentales'
-            ? (isArabic ? '🔬 علوم تجريبية' : '🔬 Sciences Exp.')
-            : (isArabic ? '📐 رياضيات' : '📐 Maths')}
+            ? (isArabic ? '🔬 علوم تجريبية' : (language === 'en' ? '🔬 Experimental Sciences' : '🔬 Sciences Exp.'))
+            : (isArabic ? '📐 رياضيات' : (language === 'en' ? '📐 Mathematics' : '📐 Maths'))}
         </div>
       </div>
 
@@ -94,7 +94,7 @@ export const LessonsPage: React.FC<LessonsPageProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={isArabic ? 'ابحث عن درس أو وحدة...' : 'Rechercher un cours ou un chapitre...'}
+            placeholder={isArabic ? 'ابحث عن درس أو وحدة...' : (language === 'en' ? 'Search for a lesson or chapter...' : 'Rechercher un cours ou un chapitre...')}
             className={`w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 focus:bg-white dark:focus:bg-slate-900 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all ${
               isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'
             }`}
@@ -111,7 +111,7 @@ export const LessonsPage: React.FC<LessonsPageProps> = ({
                 : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
             }`}
           >
-            {isArabic ? 'جميع المواد' : 'Toutes les matières'}
+            {isArabic ? 'جميع المواد' : (language === 'en' ? 'All subjects' : 'Toutes les matières')}
           </button>
           {activeSubjects.map((sub) => (
             <button
@@ -130,14 +130,14 @@ export const LessonsPage: React.FC<LessonsPageProps> = ({
 
         {/* Status filter toggles */}
         <div className="flex items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs">
-          <span className="text-slate-400 dark:text-slate-500 font-medium">{isArabic ? 'الحالة:' : 'Statut:'}</span>
+          <span className="text-slate-400 dark:text-slate-500 font-medium">{isArabic ? 'الحالة:' : (language === 'en' ? 'Status:' : 'Statut :')}</span>
           <button
             onClick={() => setStatusFilter('all')}
             className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
               statusFilter === 'all' ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            {isArabic ? 'الكل' : 'Tous'}
+            {isArabic ? 'الكل' : (language === 'en' ? 'All' : 'Tous')}
           </button>
           <button
             onClick={() => setStatusFilter('completed')}
@@ -145,7 +145,7 @@ export const LessonsPage: React.FC<LessonsPageProps> = ({
               statusFilter === 'completed' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            {isArabic ? 'مكتمل' : 'Terminés'}
+            {isArabic ? 'مكتمل' : (language === 'en' ? 'Completed' : 'Terminés')}
           </button>
           <button
             onClick={() => setStatusFilter('uncompleted')}
@@ -153,7 +153,7 @@ export const LessonsPage: React.FC<LessonsPageProps> = ({
               statusFilter === 'uncompleted' ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            {isArabic ? 'غير مكتمل' : 'À faire'}
+            {isArabic ? 'غير مكتمل' : (language === 'en' ? 'To do' : 'À faire')}
           </button>
         </div>
       </div>
@@ -161,8 +161,8 @@ export const LessonsPage: React.FC<LessonsPageProps> = ({
       {/* Lesson List */}
       {filteredLessons.length === 0 ? (
         <EmptyState
-          title={isArabic ? 'لا توجد دروس مطابقة' : 'Aucun cours trouvé'}
-          description={isArabic ? 'جرب تغيير معايير البحث أو اختيار مادة أخرى.' : 'Essaie de modifier tes filtres ou ta recherche.'}
+          title={isArabic ? 'لا توجد دروس مطابقة' : (language === 'en' ? 'No lessons found' : 'Aucun cours trouvé')}
+          description={isArabic ? 'جرب تغيير معايير البحث أو اختيار مادة أخرى.' : (language === 'en' ? 'Try adjusting your search filters.' : 'Essaie de modifier tes filtres ou ta recherche.')}
           icon="book"
         />
       ) : (
@@ -184,7 +184,7 @@ export const LessonsPage: React.FC<LessonsPageProps> = ({
                       e.stopPropagation();
                       toggleLessonCompleted(lesson.id);
                     }}
-                    title={lesson.isCompleted ? (isArabic ? 'تحديد كغير مكتمل' : 'Marquer non terminé') : (isArabic ? 'تحديد كمكتمل' : 'Marquer terminé')}
+                    title={lesson.isCompleted ? (isArabic ? 'تحديد كغير مكتمل' : (language === 'en' ? 'Mark incomplete' : 'Marquer non terminé')) : (isArabic ? 'تحديد كمكتمل' : (language === 'en' ? 'Mark completed' : 'Marquer terminé'))}
                     className={`mt-1 w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 cursor-pointer ${
                       lesson.isCompleted
                         ? 'bg-emerald-500 text-white shadow-xs'
@@ -207,7 +207,7 @@ export const LessonsPage: React.FC<LessonsPageProps> = ({
                       {lesson.isCompleted && (
                         <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/60 flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3" />
-                          <span>{isArabic ? 'مكتمل' : 'Terminé'}</span>
+                          <span>{isArabic ? 'مكتمل' : (language === 'en' ? 'Completed' : 'Terminé')}</span>
                         </span>
                       )}
                     </div>
@@ -222,7 +222,7 @@ export const LessonsPage: React.FC<LessonsPageProps> = ({
                     {lesson.estimatedMinutes && (
                       <div className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
                         <Clock className="w-3 h-3" />
-                        <span>{lesson.estimatedMinutes} {isArabic ? 'دقيقة قراءة' : 'min de lecture'}</span>
+                        <span>{lesson.estimatedMinutes} {isArabic ? 'دقيقة قراءة' : (language === 'en' ? 'min read' : 'min de lecture')}</span>
                       </div>
                     )}
                   </div>
@@ -233,7 +233,7 @@ export const LessonsPage: React.FC<LessonsPageProps> = ({
                     onClick={() => onNavigate('lesson', { lessonId: lesson.id })}
                     className="py-2 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
                   >
-                    <span>{isArabic ? 'قراءة الدرس' : 'Lire le cours'}</span>
+                    <span>{isArabic ? 'قراءة الدرس' : (language === 'en' ? 'Read lesson' : 'Lire le cours')}</span>
                     <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
                   </button>
                 </div>

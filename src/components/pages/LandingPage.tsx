@@ -41,55 +41,55 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       id: 'lessons' as ViewType,
       icon: BookOpen,
       iconColor: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border-blue-200/60 dark:border-blue-800/60',
-      title: isArabic ? 'الدروس' : 'Cours',
-      description: isArabic ? 'تعلم الدروس خطوة بخطوة وفق البرنامج الرسمي.' : 'Apprends les cours étape par étape selon le programme.',
-      actionText: isArabic ? 'تصفح الدروس' : 'Consulter les cours',
+      title: isArabic ? 'الدروس' : (language === 'en' ? 'Lessons' : 'Cours'),
+      description: isArabic ? 'تعلم الدروس خطوة بخطوة وفق البرنامج الرسمي.' : (language === 'en' ? 'Learn lessons step by step according to the curriculum.' : 'Apprends les cours étape par étape selon le programme.'),
+      actionText: isArabic ? 'تصفح الدروس' : (language === 'en' ? 'Browse lessons' : 'Consulter les cours'),
     },
     {
       id: 'exercises' as ViewType,
       icon: FileCheck2,
       iconColor: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200/60 dark:border-emerald-800/60',
-      title: isArabic ? 'التمارين' : 'Exercices',
-      description: isArabic ? 'طبّق ما تعلمته وتدرّب مع تمارين متدرجة الصعوبة.' : 'Applique tes connaissances et entraîne-toi avec des séries ciblées.',
-      actionText: isArabic ? 'تصفح التمارين' : 'Résoudre des exercices',
+      title: isArabic ? 'التمارين' : (language === 'en' ? 'Exercises' : 'Exercices'),
+      description: isArabic ? 'طبّق ما تعلمته وتدرّب مع تمارين متدرجة الصعوبة.' : (language === 'en' ? 'Apply your knowledge and train with targeted exercises.' : 'Applique tes connaissances et entraîne-toi avec des séries ciblées.'),
+      actionText: isArabic ? 'تصفح التمارين' : (language === 'en' ? 'Solve exercises' : 'Résoudre des exercices'),
     },
     {
       id: 'summaries' as ViewType,
       icon: FileText,
       iconColor: 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 border-purple-200/60 dark:border-purple-800/60',
-      title: isArabic ? 'الملخصات' : 'Résumés',
-      description: isArabic ? 'راجع أهم القوانين والنقاط الأساسية بسرعة وتركيز.' : 'Révise les points clés et formules essentielles en un coup d’œil.',
-      actionText: isArabic ? 'تصفح الملخصات' : 'Voir les résumés',
+      title: isArabic ? 'الملخصات' : (language === 'en' ? 'Summaries' : 'Résumés'),
+      description: isArabic ? 'راجع أهم القوانين والنقاط الأساسية بسرعة وتركيز.' : (language === 'en' ? 'Review key points and essential formulas at a glance.' : 'Révise les points clés et formules essentielles en un coup d’œil.'),
+      actionText: isArabic ? 'تصفح الملخصات' : (language === 'en' ? 'View summaries' : 'Voir les résumés'),
     },
     {
       id: 'bac-exams' as ViewType,
       icon: BookmarkCheck,
       iconColor: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border-amber-200/60 dark:border-amber-800/60',
-      title: isArabic ? 'مواضيع البكالوريا' : 'Sujets BAC',
-      description: isArabic ? 'تدرّب على مواضيع السنوات السابقة مع الحلول النموذجية.' : 'Entraîne-toi sur les annales officielles avec corrigés détaillés.',
-      actionText: isArabic ? 'مواضيع البكالوريا' : 'Voir les sujets',
+      title: isArabic ? 'مواضيع البكالوريا' : (language === 'en' ? 'BAC Exams' : 'Sujets BAC'),
+      description: isArabic ? 'تدرّب على مواضيع السنوات السابقة مع الحلول النموذجية.' : (language === 'en' ? 'Practice on official past exams with detailed solutions.' : 'Entraîne-toi sur les annales officielles avec corrigés détaillés.'),
+      actionText: isArabic ? 'مواضيع البكالوريا' : (language === 'en' ? 'View past exams' : 'Voir les sujets'),
     },
   ];
 
   const whyPoints = [
     {
-      title: isArabic ? 'مجاني 100%' : '100% Gratuit',
-      desc: isArabic ? 'منصة مفتوحة لجميع التلاميذ بدون أي اشتراكات أو رسوم مخفية.' : 'Accès libre et ouvert à tous les élèves sans frais.',
+      title: isArabic ? 'مجاني 100%' : (language === 'en' ? '100% Free' : '100% Gratuit'),
+      desc: isArabic ? 'منصة مفتوحة لجميع التلاميذ بدون أي اشتراكات أو رسوم مخفية.' : (language === 'en' ? 'Free and open access for all students with no fees.' : 'Accès libre et ouvert à tous les élèves sans frais.'),
       icon: Zap,
     },
     {
-      title: isArabic ? 'مخصص للعلوم والرياضيات' : 'Centré Sciences & Maths',
-      desc: isArabic ? 'تركيز كامل على شعبتي العلوم التجريبية والرياضيات فقط لضمان الجودة.' : 'Concentration exclusive sur les deux filières phares.',
+      title: isArabic ? 'مخصص للعلوم والرياضيات' : (language === 'en' ? 'Focused on Sciences & Maths' : 'Centré Sciences & Maths'),
+      desc: isArabic ? 'تركيز كامل على شعبتي العلوم التجريبية والرياضيات فقط لضمان الجودة.' : (language === 'en' ? 'Exclusive focus on the two major scientific streams.' : 'Concentration exclusive sur les deux filières phares.'),
       icon: GraduationCap,
     },
     {
-      title: isArabic ? 'بدون تشتيت' : 'Zéro distraction',
-      desc: isArabic ? 'واجهة بسيطة وسريعة بدون إعلانات مزعجة تتيح لك التركيز في دراستك.' : 'Interface épurée et rapide, pensée pour étudier efficacement.',
+      title: isArabic ? 'بدون تشتيت' : (language === 'en' ? 'Zero distraction' : 'Zéro distraction'),
+      desc: isArabic ? 'واجهة بسيطة وسريعة بدون إعلانات مزعجة تتيح لك التركيز في دراستك.' : (language === 'en' ? 'Clean and fast interface designed for efficient studying.' : 'Interface épurée et rapide, pensée pour étudier efficacement.'),
       icon: ShieldCheck,
     },
     {
-      title: isArabic ? 'وفق منهاج الجزائر' : 'Programme officiel algérien',
-      desc: isArabic ? 'تنظيم دقيق للمواد والمعاملات المعتمدة في امتحان شهادة البكالوريا.' : 'Structuré selon les coefficients et chapitres officiels du BAC.',
+      title: isArabic ? 'وفق منهاج الجزائر' : (language === 'en' ? 'Official Algerian curriculum' : 'Programme officiel algérien'),
+      desc: isArabic ? 'تنظيم دقيق للمواد والمعاملات المعتمدة في امتحان شهادة البكالوريا.' : (language === 'en' ? 'Structured according to official BAC coefficients and chapters.' : 'Structuré selon les coefficients et chapitres officiels du BAC.'),
       icon: CheckCircle2,
     },
   ];
@@ -108,7 +108,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {/* Pill Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 text-xs font-semibold shadow-xs">
               <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
-              <span>{isArabic ? 'منصة مجانية 100% لتلاميذ البكالوريا' : 'Plateforme 100% gratuite pour le BAC'}</span>
+              <span>{isArabic ? 'منصة مجانية 100% لتلاميذ البكالوريا' : (language === 'en' ? '100% Free platform for BAC students' : 'Plateforme 100% gratuite pour le BAC')}</span>
             </div>
 
             {/* Headline */}
@@ -120,6 +120,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     البكالوريا
                   </span>{' '}
                   يبدأ هنا.
+                </>
+              ) : language === 'en' ? (
+                <>
+                  Your path to{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-300">
+                    excellence in the BAC
+                  </span>{' '}
+                  starts here.
                 </>
               ) : (
                 <>
@@ -136,7 +144,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed">
               {isArabic
                 ? 'دروس، تمارين، ملخصات، ومواضيع البكالوريا لشعبتي العلوم التجريبية والرياضيات.'
-                : 'Cours, exercices, résumés et sujets officiels du BAC pour les filières Sciences Expérimentales et Mathématiques.'}
+                : (language === 'en' ? 'Lessons, exercises, summaries, and official BAC exams for Experimental Sciences and Mathematics.' : 'Cours, exercices, résumés et sujets officiels du BAC pour les filières Sciences Expérimentales et Mathématiques.')}
             </p>
 
             {/* Main Action Buttons */}
@@ -146,7 +154,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 onClick={() => onNavigate('dashboard')}
                 className="py-3 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer"
               >
-                <span>{isArabic ? 'ابدأ المراجعة الآن' : 'Commencer à réviser'}</span>
+                <span>{isArabic ? 'ابدأ المراجعة الآن' : (language === 'en' ? 'Start studying' : 'Commencer à réviser')}</span>
                 <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </button>
 
@@ -155,7 +163,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 onClick={() => onOpenAuth('login')}
                 className="py-3 px-5 rounded-xl bg-white dark:bg-[#131B2E] hover:bg-slate-50 dark:hover:bg-[#1A243B] text-blue-700 dark:text-blue-300 hover:text-blue-800 dark:hover:text-white font-semibold text-sm border border-blue-200 dark:border-blue-800/60 shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>{isArabic ? 'تسجيل الدخول' : 'Connexion'}</span>
+                <span>{isArabic ? 'تسجيل الدخول' : (language === 'en' ? 'Sign in' : 'Connexion')}</span>
               </button>
 
               <button
@@ -167,7 +175,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 }}
                 className="py-3 px-5 rounded-xl bg-white dark:bg-[#131B2E] hover:bg-slate-50 dark:hover:bg-[#1A243B] text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white font-semibold text-sm border border-slate-300 dark:border-slate-700 shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>{isArabic ? 'اختر شعبتك' : 'Choisir ta filière'}</span>
+                <span>{isArabic ? 'اختر شعبتك' : (language === 'en' ? 'Choose your stream' : 'Choisir ta filière')}</span>
               </button>
             </div>
           </div>
@@ -181,7 +189,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700" />
                   <span className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700" />
                   <span className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700" />
-                  <span className="text-xs font-mono text-slate-500 dark:text-slate-400 ml-1">bacnext.dz</span>
+                  <span className="text-xs font-mono text-slate-500 dark:text-slate-400 ml-1">eosbac.dz</span>
                 </div>
                 <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/40 px-2.5 py-0.5 rounded-full">
                   BAC 2026
@@ -191,7 +199,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {/* Math card */}
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#1A243B] border border-slate-200/70 dark:border-slate-700/80 space-y-1.5 font-mono text-xs">
                 <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-sans font-semibold tracking-wider">
-                  {isArabic ? 'الرياضيات • الدوال الأسية' : 'Mathématiques • Fonctions exponentielles'}
+                  {isArabic ? 'الرياضيات • الدوال الأسية' : (language === 'en' ? 'Mathematics • Exponential Functions' : 'Mathématiques • Fonctions exponentielles')}
                 </div>
                 <div className="text-slate-900 dark:text-white font-semibold text-sm">
                   f'(x) = e^x \cdot \ln(x) + \frac{'{e^x}'}{'{x}'}
@@ -205,7 +213,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#1A243B] border border-slate-200/70 dark:border-slate-700/80 space-y-1">
                   <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    {isArabic ? 'الفيزياء' : 'Physique'}
+                    {isArabic ? 'الفيزياء' : (language === 'en' ? 'Physics' : 'Physique')}
                   </div>
                   <div className="text-xs font-mono text-slate-800 dark:text-slate-200">
                     u_C(t) + RC \frac{'{du_C}'}{'{dt}'} = E
@@ -217,7 +225,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                 <div className="p-3.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 flex flex-col justify-between">
                   <div className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
-                    {isArabic ? 'التقدم الإجمالي' : 'Progression'}
+                    {isArabic ? 'التقدم الإجمالي' : (language === 'en' ? 'Progress' : 'Progression')}
                   </div>
                   <div className="text-2xl font-extrabold text-blue-900 dark:text-blue-200">
                     68%
@@ -231,16 +239,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {/* Fast Pillar Links Preview */}
               <div className="grid grid-cols-4 gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
                 <div className="text-center py-1.5 rounded-lg bg-slate-50 dark:bg-[#1A243B] text-[11px] font-medium text-slate-700 dark:text-slate-300 border border-transparent dark:border-slate-750">
-                  {isArabic ? 'دروس' : 'Cours'}
+                  {isArabic ? 'دروس' : (language === 'en' ? 'Lessons' : 'Cours')}
                 </div>
                 <div className="text-center py-1.5 rounded-lg bg-slate-50 dark:bg-[#1A243B] text-[11px] font-medium text-slate-700 dark:text-slate-300 border border-transparent dark:border-slate-750">
-                  {isArabic ? 'تمارين' : 'Exercices'}
+                  {isArabic ? 'تمارين' : (language === 'en' ? 'Exercises' : 'Exercices')}
                 </div>
                 <div className="text-center py-1.5 rounded-lg bg-slate-50 dark:bg-[#1A243B] text-[11px] font-medium text-slate-700 dark:text-slate-300 border border-transparent dark:border-slate-750">
-                  {isArabic ? 'ملخصات' : 'Résumés'}
+                  {isArabic ? 'ملخصات' : (language === 'en' ? 'Summaries' : 'Résumés')}
                 </div>
                 <div className="text-center py-1.5 rounded-lg bg-slate-50 dark:bg-[#1A243B] text-[11px] font-medium text-slate-700 dark:text-slate-300 border border-transparent dark:border-slate-750">
-                  {isArabic ? 'بكالوريا' : 'BAC'}
+                  {isArabic ? 'بكالوريا' : (language === 'en' ? 'BAC' : 'BAC')}
                 </div>
               </div>
             </div>
@@ -253,12 +261,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <section id="landing-streams" className="space-y-8 scroll-mt-24">
           <div className="text-center max-w-xl mx-auto space-y-2">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {isArabic ? 'اختر شعبتك' : 'Choisis ta filière'}
+              {isArabic ? 'اختر شعبتك' : (language === 'en' ? 'Choose your stream' : 'Choisis ta filière')}
             </h2>
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {isArabic
                 ? 'انقر على شعبتك للدخول المباشر إلى المواد والدروس المخصصة.'
-                : 'Sélectionne ta filière pour accéder immédiatement aux matières correspondantes.'}
+                : (language === 'en' ? 'Select your stream to access corresponding subjects immediately.' : 'Sélectionne ta filière pour accéder immédiatement aux matières correspondantes.')}
             </p>
           </div>
 
@@ -278,23 +286,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-3xl">🔬</span>
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
-                  {isArabic ? 'شعبة العلوم التجريبية' : 'Sciences Expérimentales'}
+                  {isArabic ? 'شعبة العلوم التجريبية' : (language === 'en' ? 'Experimental Sciences' : 'Sciences Expérimentales')}
                 </span>
               </div>
 
               <div>
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                  {isArabic ? 'العلوم التجريبية' : 'Sciences Expérimentales'}
+                  {isArabic ? 'العلوم التجريبية' : (language === 'en' ? 'Experimental Sciences' : 'Sciences Expérimentales')}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
                   {isArabic
                     ? 'علوم الطبيعة والحياة (معامل 6) • العلوم الفيزيائية (معامل 6) • الرياضيات (معامل 5)'
-                    : 'SVT (Coeff 6) • Physique-Chimie (Coeff 6) • Mathématiques (Coeff 5)'}
+                    : (language === 'en' ? 'Natural Sciences (Coeff 6) • Physics & Chemistry (Coeff 6) • Mathematics (Coeff 5)' : 'SVT (Coeff 6) • Physique-Chimie (Coeff 6) • Mathématiques (Coeff 5)')}
                 </p>
               </div>
 
               <div className="pt-2 flex items-center justify-between text-xs font-semibold text-blue-600 dark:text-blue-400">
-                <span>{isArabic ? 'ابدأ المراجعة بهذه الشعبة' : 'Choisir cette filière'}</span>
+                <span>{isArabic ? 'ابدأ المراجعة بهذه الشعبة' : (language === 'en' ? 'Choose this stream' : 'Choisir cette filière')}</span>
                 <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </div>
             </div>
@@ -314,23 +322,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-3xl">📐</span>
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60">
-                  {isArabic ? 'شعبة الرياضيات' : 'Mathématiques'}
+                  {isArabic ? 'شعبة الرياضيات' : (language === 'en' ? 'Mathematics' : 'Mathématiques')}
                 </span>
               </div>
 
               <div>
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                  {isArabic ? 'الرياضيات' : 'Mathématiques'}
+                  {isArabic ? 'الرياضيات' : (language === 'en' ? 'Mathematics' : 'Mathématiques')}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
                   {isArabic
                     ? 'الرياضيات (معامل 7) • العلوم الفيزيائية (معامل 6) • علوم الطبيعة والحياة (معامل 2)'
-                    : 'Mathématiques (Coeff 7) • Physique-Chimie (Coeff 6) • SVT (Coeff 2)'}
+                    : (language === 'en' ? 'Mathematics (Coeff 7) • Physics & Chemistry (Coeff 6) • Natural Sciences (Coeff 2)' : 'Mathématiques (Coeff 7) • Physique-Chimie (Coeff 6) • SVT (Coeff 2)')}
                 </p>
               </div>
 
               <div className="pt-2 flex items-center justify-between text-xs font-semibold text-purple-600 dark:text-purple-400">
-                <span>{isArabic ? 'ابدأ المراجعة بهذه الشعبة' : 'Choisir cette filière'}</span>
+                <span>{isArabic ? 'ابدأ المراجعة بهذه الشعبة' : (language === 'en' ? 'Choose this stream' : 'Choisir cette filière')}</span>
                 <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </div>
             </div>
@@ -343,15 +351,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <section className="space-y-8">
           <div className="text-center max-w-xl mx-auto space-y-2">
             <div className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-              {isArabic ? 'المحتوى التعليمي الأساسي' : 'Contenu Essentiel'}
+              {isArabic ? 'المحتوى التعليمي الأساسي' : (language === 'en' ? 'Core Educational Content' : 'Contenu Essentiel')}
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {isArabic ? 'أركان المنصة الأربعة' : 'Les 4 Piliers de BacNext'}
+              {isArabic ? 'أركان المنصة الأربعة' : (language === 'en' ? 'The 4 Pillars of EOS BAC' : 'Les 4 Piliers de EOS BAC')}
             </h2>
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {isArabic
                 ? 'كل ما تحتاجه للتحضير متوفر في أربعة أقسام واضحة وسهلة الوصول.'
-                : 'Tout ce dont tu as besoin réuni en 4 catégories fondamentales.'}
+                : (language === 'en' ? 'Everything you need gathered into 4 fundamental categories.' : 'Tout ce dont tu as besoin réuni en 4 catégories fondamentales.')}
             </p>
           </div>
 
@@ -389,17 +397,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </section>
 
         {/* =========================================================================
-            4. WHY BACNEXT?
+            4. WHY EOS BAC?
            ========================================================================= */}
         <section className="p-8 sm:p-12 rounded-3xl bg-white dark:bg-[#131B2E] border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-8 transition-colors">
           <div className="text-center max-w-xl mx-auto space-y-2">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {isArabic ? 'لماذا BacNext؟' : 'Pourquoi choisir BacNext ?'}
+              {isArabic ? 'لماذا EOS BAC؟' : (language === 'en' ? 'Why choose EOS BAC?' : 'Pourquoi choisir EOS BAC ?')}
             </h2>
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {isArabic
                 ? 'صُممت المنصة لتكون رفيقك اليومي في المراجعة حتى يوم الامتحان.'
-                : 'Conçue pour être ton espace de révision quotidien jusqu’au jour du BAC.'}
+                : (language === 'en' ? 'Designed to be your daily revision space until the day of the BAC.' : 'Conçue pour être ton espace de révision quotidien jusqu’au jour du BAC.')}
             </p>
           </div>
 
@@ -429,12 +437,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <section className="p-10 sm:p-14 rounded-3xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-700 dark:from-blue-900 dark:via-blue-800 dark:to-indigo-900 text-white text-center space-y-6 shadow-xl shadow-blue-600/15 border border-transparent dark:border-blue-500/20">
           <div className="max-w-2xl mx-auto space-y-3">
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              {isArabic ? 'جاهز تبدأ المراجعة؟' : 'Prêt à commencer tes révisions ?'}
+              {isArabic ? 'جاهز تبدأ المراجعة؟' : (language === 'en' ? 'Ready to start revising?' : 'Prêt à commencer tes révisions ?')}
             </h2>
             <p className="text-sm sm:text-base text-blue-100 leading-relaxed">
               {isArabic
                 ? 'انضم الآن مجانًا وابدأ في مراجعة دروسك والتحضير للبكالوريا بثقة وتنظيم.'
-                : 'Accède gratuitement à toutes les ressources et commence à préparer ton BAC avec rigueur.'}
+                : (language === 'en' ? 'Access all resources for free and start preparing for your BAC with confidence.' : 'Accède gratuitement à toutes les ressources et commence à préparer ton BAC avec rigueur.')}
             </p>
           </div>
 
@@ -444,7 +452,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => onNavigate('dashboard')}
               className="py-3 px-8 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-bold text-sm shadow-md transition-all active:scale-[0.99] cursor-pointer"
             >
-              {isArabic ? 'ابدأ الآن مجانًا' : 'Commencer gratuitement'}
+              {isArabic ? 'ابدأ الآن مجانًا' : (language === 'en' ? 'Start for free' : 'Commencer gratuitement')}
             </button>
           </div>
         </section>

@@ -28,6 +28,8 @@ import {
   HelpCircle,
   PlayCircle,
   Target,
+  Trophy,
+  Compass,
 } from 'lucide-react';
 
 interface DashboardPageProps {
@@ -70,7 +72,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const realName =
     currentUser?.full_name ||
     profile.name ||
-    (isArabic ? 'تلميذ البكالوريا' : 'Étudiant');
+    (isArabic ? 'تلميذ البكالوريا' : (language === 'en' ? 'Student' : 'Étudiant'));
 
   // Dynamic BAC Countdown Calculation (Targeting Algerian BAC June 2027)
   const [bacTargetYear] = useState(2027);
@@ -90,7 +92,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   // Study tasks state with local storage persistence
   const [tasks, setTasks] = useState<StudyTask[]>(() => {
     try {
-      const saved = localStorage.getItem('bacnext_user_tasks');
+      const saved = localStorage.getItem('eosbac_user_tasks') || localStorage.getItem('bacnext_user_tasks');
       if (saved) return JSON.parse(saved);
     } catch {
       // fallback
@@ -98,29 +100,29 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     return [
       {
         id: '1',
-        title: isArabic ? 'إنهاء دراسة الدوال الأسية' : 'Finir le chapitre Fonctions exponentielles',
-        subject: isArabic ? 'رياضيات' : 'Mathématiques',
+        title: isArabic ? 'إنهاء دراسة الدوال الأسية' : (language === 'en' ? 'Finish studying Exponential Functions' : 'Finir le chapitre Fonctions exponentielles'),
+        subject: isArabic ? 'رياضيات' : (language === 'en' ? 'Mathematics' : 'Mathématiques'),
         time: '45 min',
         completed: true,
       },
       {
         id: '2',
-        title: isArabic ? 'حل تمارين المتابعة الزمنية' : 'Résoudre 3 exercices de cinétique chimique',
-        subject: isArabic ? 'فيزياء' : 'Physique-Chimie',
+        title: isArabic ? 'حل تمارين المتابعة الزمنية' : (language === 'en' ? 'Solve 3 exercises on chemical kinetics' : 'Résoudre 3 exercices de cinétique chimique'),
+        subject: isArabic ? 'فيزياء' : (language === 'en' ? 'Physics & Chemistry' : 'Physique-Chimie'),
         time: '1h 15',
         completed: false,
       },
       {
         id: '3',
-        title: isArabic ? 'إجراء اختبار تقييمي' : 'Quiz d’évaluation rapide',
-        subject: isArabic ? 'احتمالات' : 'Probabilités',
+        title: isArabic ? 'إجراء اختبار تقييمي' : (language === 'en' ? 'Quick assessment quiz' : 'Quiz d’évaluation rapide'),
+        subject: isArabic ? 'احتمالات' : (language === 'en' ? 'Probability' : 'Probabilités'),
         time: '20 min',
         completed: false,
       },
       {
         id: '4',
-        title: isArabic ? 'مراجعة ملخص المناعة' : 'Fiche de synthèse Immunologie',
-        subject: isArabic ? 'علوم طبيعية' : 'SVT',
+        title: isArabic ? 'مراجعة ملخص المناعة' : (language === 'en' ? 'Immunology summary sheet' : 'Fiche de synthèse Immunologie'),
+        subject: isArabic ? 'علوم طبيعية' : (language === 'en' ? 'Natural & Life Sciences' : 'SVT'),
         time: '30 min',
         completed: false,
       },
@@ -130,7 +132,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const saveTasks = (newTasks: StudyTask[]) => {
     setTasks(newTasks);
     try {
-      localStorage.setItem('bacnext_user_tasks', JSON.stringify(newTasks));
+      const serialized = JSON.stringify(newTasks);
+      localStorage.setItem('eosbac_user_tasks', serialized);
+      localStorage.setItem('bacnext_user_tasks', serialized);
     } catch {}
   };
 
@@ -147,7 +151,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   // Add Task Modal State
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskSubject, setNewTaskSubject] = useState(isArabic ? 'رياضيات' : 'Mathématiques');
+  const [newTaskSubject, setNewTaskSubject] = useState(isArabic ? 'رياضيات' : (language === 'en' ? 'Mathematics' : 'Mathématiques'));
   const [newTaskTime, setNewTaskTime] = useState('45 min');
 
   const handleAddTask = (e: React.FormEvent) => {
@@ -169,29 +173,29 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const coreCategories = [
     {
       id: 'lessons' as ViewType,
-      title: isArabic ? 'الدروس' : 'Cours complets',
-      subtitle: isArabic ? 'شرح مفصل ومفاهيم واضحة للمنهاج' : 'Programme officiel pas à pas',
+      title: isArabic ? 'الدروس' : (language === 'en' ? 'Full Lessons' : 'Cours complets'),
+      subtitle: isArabic ? 'شرح مفصل ومفاهيم واضحة للمنهاج' : (language === 'en' ? 'Step-by-step official curriculum' : 'Programme officiel pas à pas'),
       icon: BookOpen,
       iconColor: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border-blue-200/80 dark:border-blue-800/60',
     },
     {
       id: 'exercises' as ViewType,
-      title: isArabic ? 'بنك التمارين' : 'Exercices corrigés',
-      subtitle: isArabic ? 'تمارين متدرجة مع سلم التنقيط' : 'Entraînement guidé avec solutions',
+      title: isArabic ? 'بنك التمارين' : (language === 'en' ? 'Solved Exercises' : 'Exercices corrigés'),
+      subtitle: isArabic ? 'تمارين متدرجة مع سلم التنقيط' : (language === 'en' ? 'Guided practice with grading scale' : 'Entraînement guidé avec solutions'),
       icon: FileCheck2,
       iconColor: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200/80 dark:border-emerald-800/60',
     },
     {
       id: 'summaries' as ViewType,
-      title: isArabic ? 'الملخصات المركزة' : 'Fiches de révision',
-      subtitle: isArabic ? 'جداول وقوانين المراجعة الذكية' : 'Formules, définitions et repères clés',
+      title: isArabic ? 'الملخصات المركزة' : (language === 'en' ? 'Revision Summaries' : 'Fiches de révision'),
+      subtitle: isArabic ? 'جداول وقوانين المراجعة الذكية' : (language === 'en' ? 'Formulas, definitions and key benchmarks' : 'Formules, définitions et repères clés'),
       icon: FileText,
       iconColor: 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 border-purple-200/80 dark:border-purple-800/60',
     },
     {
       id: 'bac-exams' as ViewType,
-      title: isArabic ? 'حوليات البكالوريا' : 'Annales du BAC',
-      subtitle: isArabic ? 'مواضيع وحلول رسمية بالـ PDF' : 'Sujets et barèmes ministériels',
+      title: isArabic ? 'حوليات البكالوريا' : (language === 'en' ? 'BAC Past Papers' : 'Annales du BAC'),
+      subtitle: isArabic ? 'مواضيع وحلول رسمية بالـ PDF' : (language === 'en' ? 'Official PDF exams and grading scales' : 'Sujets et barèmes ministériels'),
       icon: BookmarkCheck,
       iconColor: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border-amber-200/80 dark:border-amber-800/60',
     },
@@ -282,17 +286,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <Flame className="w-3.5 h-3.5 fill-blue-500/20" />
             <span>
               {isSci
-                ? (isArabic ? 'شعبة العلوم التجريبية' : 'Filière Sciences Expérimentales')
-                : (isArabic ? 'شعبة الرياضيات' : 'Filière Mathématiques')}
+                ? (isArabic ? 'شعبة العلوم التجريبية' : (language === 'en' ? 'Experimental Sciences Stream' : 'Filière Sciences Expérimentales'))
+                : (isArabic ? 'شعبة الرياضيات' : (language === 'en' ? 'Mathematics Stream' : 'Filière Mathématiques'))}
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            {isArabic ? `مرحبًا، ${realName}` : `Bonjour, ${realName}`} 👋
+            {isArabic ? `مرحبًا، ${realName}` : (language === 'en' ? `Hello, ${realName}` : `Bonjour, ${realName}`)} 👋
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">
             {isArabic
               ? 'واصل المراجعة اليومية بخطى ثابتة نحو النجاح في البكالوريا بتفوق.'
-              : 'Ton espace de travail pour réviser méthodiquement le Baccalauréat.'}
+              : (language === 'en' ? 'Your workspace to methodically prepare for the Baccalaureate.' : 'Ton espace de travail pour réviser méthodiquement le Baccalauréat.')}
           </p>
         </div>
 
@@ -306,7 +310,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            {isArabic ? '🔬 علوم تجريبية' : '🔬 Sciences Exp.'}
+            {isArabic ? '🔬 علوم تجريبية' : (language === 'en' ? '🔬 Experimental Sciences' : '🔬 Sciences Exp.')}
           </button>
           <button
             onClick={() => onStreamChange('mathematiques')}
@@ -316,10 +320,93 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            {isArabic ? '📐 رياضيات' : '📐 Maths'}
+            {isArabic ? '📐 رياضيات' : (language === 'en' ? '📐 Mathematics' : '📐 Maths')}
           </button>
         </div>
       </div>
+
+      {/* =========================================================================
+          STUDENT PERSONAL GOAL & ASPIRATIONS CARD
+         ========================================================================= */}
+      {(currentUser?.dream || currentUser?.goal || profile.dream || profile.goal) ? (
+        <div
+          id="student-personal-goal-card"
+          className="p-5 rounded-2xl bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 dark:from-[#0c1427] dark:via-[#161a3d] dark:to-[#0f172a] text-white border border-blue-500/30 dark:border-blue-900/60 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all"
+        >
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shrink-0">
+              <Trophy className="w-6 h-6 fill-amber-300" />
+            </div>
+            <div className="space-y-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-500/30 text-blue-200 text-[11px] font-extrabold uppercase tracking-wider border border-blue-400/20">
+                  {isArabic ? 'هدفي في البكالوريا' : (language === 'en' ? 'My BAC Challenge' : 'Mon Défi BAC')}
+                </span>
+                {(currentUser?.target_score || profile.targetScore) && (
+                  <span className="text-xs font-mono font-bold text-amber-300 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">
+                    {isArabic
+                      ? `المعدل المستهدف: ${currentUser?.target_score || profile.targetScore}/20`
+                      : `Cible : ${currentUser?.target_score || profile.targetScore}/20`}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm sm:text-base font-extrabold text-white">
+                {(currentUser?.dream || profile.dream) && (
+                  <span className="flex items-center gap-1.5 text-purple-200">
+                    <span>✨</span>
+                    <span>{currentUser?.dream || profile.dream}</span>
+                  </span>
+                )}
+                {(currentUser?.dream || profile.dream) && (currentUser?.goal || profile.goal) && (
+                  <span className="text-slate-400">•</span>
+                )}
+                {(currentUser?.goal || profile.goal) && (
+                  <span className="text-emerald-300 font-semibold text-xs sm:text-sm">
+                    {currentUser?.goal || profile.goal}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onNavigate('profile')}
+            className="self-end md:self-center px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 border border-white/20 text-xs font-bold text-white flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+          >
+            <span>{isArabic ? 'تعديل طموحي' : (language === 'en' ? 'Edit my goal' : 'Modifier mon objectif')}</span>
+            <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+      ) : (
+        <div
+          id="student-set-goal-prompt"
+          className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50/50 dark:from-slate-900/80 dark:to-blue-950/40 border border-blue-200/80 dark:border-blue-900/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <Compass className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                {isArabic ? 'حدد حلمك وهدفك في البكالوريا' : (language === 'en' ? 'Define your dream and BAC target' : 'Définis ton rêve et ton objectif BAC')}
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                {isArabic
+                  ? 'خصص تجربتك واجعل المساعد الذكي يوجهك نحو تخصص أحلامك.'
+                  : (language === 'en' ? 'Personalize your experience and receive AI advice oriented toward your future.' : 'Personnalise ton expérience et reçois des conseils de l’IA orientés vers ton avenir.')}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onNavigate('profile')}
+            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+          >
+            <span>{isArabic ? 'تحديد الهدف الآن' : (language === 'en' ? 'Set my goal now' : 'Définir mon objectif')}</span>
+            <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+      )}
 
       {/* =========================================================================
           2. CONTINUE LEARNING HERO BANNER
@@ -332,7 +419,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <div className="space-y-2 min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full bg-blue-500/30 text-blue-100 text-[11px] font-extrabold uppercase tracking-wider border border-blue-400/20">
-                {isArabic ? 'تابع المراجعة الآن' : 'Reprendre la révision'}
+                {isArabic ? 'تابع المراجعة الآن' : (language === 'en' ? 'Resume studying' : 'Reprendre la révision')}
               </span>
               <span className="text-xs text-blue-200 font-medium">
                 • {isArabic ? nextLessonSubject?.arabicName : nextLessonSubject?.name}
@@ -346,10 +433,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <p className="text-xs sm:text-sm text-blue-100/80 font-medium line-clamp-1">
               {nextLesson.chapter ? `${nextLesson.chapter} • ` : ''}
               {nextLesson.estimatedMinutes
-                ? `${nextLesson.estimatedMinutes} ${isArabic ? 'دقيقة قراءة' : 'min de lecture'}`
+                ? `${nextLesson.estimatedMinutes} ${isArabic ? 'دقيقة قراءة' : (language === 'en' ? 'min read' : 'min de lecture')}`
                 : isArabic
                 ? 'درس منظم وفق المنهاج الوزاري'
-                : 'Programme officiel 3AS'}
+                : (language === 'en' ? 'Official 3AS curriculum' : 'Programme officiel 3AS')}
             </p>
           </div>
 
@@ -358,7 +445,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             className="w-full md:w-auto px-5 py-3 rounded-xl bg-white text-blue-900 hover:bg-blue-50 active:scale-95 font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all shrink-0 cursor-pointer"
           >
             <PlayCircle className="w-4 h-4 text-blue-600 shrink-0" />
-            <span>{isArabic ? 'متابعة الدرس' : 'Continuer le cours'}</span>
+            <span>{isArabic ? 'متابعة الدرس' : (language === 'en' ? 'Continue lesson' : 'Continuer le cours')}</span>
             <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
           </button>
         </div>
@@ -401,11 +488,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <div className="flex-1 w-full space-y-2 text-center sm:text-start">
             <div className="flex items-center justify-center sm:justify-between">
               <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                {isArabic ? 'مستوى الإنجاز العام' : 'Progression globale'}
+                {isArabic ? 'مستوى الإنجاز العام' : (language === 'en' ? 'Overall progress' : 'Progression globale')}
               </h2>
               <span className="hidden sm:inline-block text-xs font-semibold text-slate-500 dark:text-slate-400 font-mono">
                 {completedLessons}/{totalLessons > 0 ? totalLessons : 48}{' '}
-                {isArabic ? 'درس مكتمل' : 'cours'}
+                {isArabic ? 'درس مكتمل' : (language === 'en' ? 'lessons' : 'cours')}
               </span>
             </div>
 
@@ -420,7 +507,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
               {isArabic
                 ? 'الحفاظ على وتيرة دراسة منتظمة يرفع فرص نيل شهادة البكالوريا بتفوق.'
-                : 'Une régularité quotidienne garantit la maîtrise complète du programme.'}
+                : (language === 'en' ? 'Daily consistency ensures complete mastery of the curriculum.' : 'Une régularité quotidienne garantit la maîtrise complète du programme.')}
             </p>
           </div>
 
@@ -429,7 +516,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             onClick={() => onNavigate('lessons')}
             className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shrink-0 cursor-pointer"
           >
-            <span>{isArabic ? 'تصفح الدروس' : 'Voir les cours'}</span>
+            <span>{isArabic ? 'تصفح الدروس' : (language === 'en' ? 'View lessons' : 'Voir les cours')}</span>
             <ChevronRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
           </button>
         </div>
@@ -451,7 +538,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   BAC {bacTargetYear}
                 </span>
                 <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                  {isArabic ? 'الامتحان الوطني الرسمي' : 'Examen officiel'}
+                  {isArabic ? 'الامتحان الوطني الرسمي' : (language === 'en' ? 'Official National Exam' : 'Examen officiel')}
                 </div>
               </div>
             </div>
@@ -468,11 +555,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 {daysRemaining}
               </span>
               <span className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">
-                {isArabic ? 'يوم متبقي' : 'jours restants'}
+                {isArabic ? 'يوم متبقي' : (language === 'en' ? 'days remaining' : 'jours restants')}
               </span>
             </div>
             <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-800">
-              {isArabic ? 'دورة جوان' : 'Session Juin'}
+              {isArabic ? 'دورة جوان' : (language === 'en' ? 'June Session' : 'Session Juin')}
             </span>
           </div>
         </div>
@@ -484,10 +571,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       <section className="space-y-3.5">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-slate-900 dark:text-white">
-            {isArabic ? 'محاور التعلم' : 'Mon apprentissage'}
+            {isArabic ? 'محاور التعلم' : (language === 'en' ? 'My Learning' : 'Mon apprentissage')}
           </h2>
           <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            {isArabic ? 'وصول مباشر وسريع' : 'Accès direct'}
+            {isArabic ? 'وصول مباشر وسريع' : (language === 'en' ? 'Quick Access' : 'Accès direct')}
           </span>
         </div>
 
@@ -537,10 +624,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-bold text-slate-900 dark:text-white">
-              {isArabic ? 'المواد الدراسية' : 'Mes matières'}
+              {isArabic ? 'المواد الدراسية' : (language === 'en' ? 'My Subjects' : 'Mes matières')}
             </h2>
             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              ({isSci ? (isArabic ? 'علوم تجريبية' : 'Sciences Exp.') : (isArabic ? 'رياضيات' : 'Maths')})
+              ({isSci ? (isArabic ? 'علوم تجريبية' : (language === 'en' ? 'Experimental Sciences' : 'Sciences Exp.')) : (isArabic ? 'رياضيات' : (language === 'en' ? 'Mathematics' : 'Maths'))})
             </span>
           </div>
 
@@ -548,7 +635,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             onClick={() => onNavigate('subjects')}
             className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
           >
-            <span>{isArabic ? 'عرض كل المواد' : 'Voir tout'}</span>
+            <span>{isArabic ? 'عرض كل المواد' : (language === 'en' ? 'View all subjects' : 'Voir tout')}</span>
             <ChevronRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
           </button>
         </div>
@@ -571,7 +658,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   <div className="flex items-center justify-between">
                     {renderSubjectIcon(sub.id)}
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono">
-                      {isArabic ? `معامل ${coeff}` : `Coeff ${coeff}`}
+                      {isArabic ? `معامل ${coeff}` : (language === 'en' ? `Coeff ${coeff}` : `Coeff ${coeff}`)}
                     </span>
                   </div>
 
@@ -580,7 +667,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                       {isArabic ? sub.arabicName : sub.name}
                     </h3>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
-                      {isArabic ? sub.description : (sub.description || 'Programme officiel 3AS')}
+                      {isArabic ? sub.description : (sub.description || (language === 'en' ? 'Official 3AS curriculum' : 'Programme officiel 3AS'))}
                     </p>
                   </div>
                 </div>
@@ -599,7 +686,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   </div>
 
                   <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 group-hover:underline">
-                    {isArabic ? 'دخول' : 'Ouvrir'}
+                    {isArabic ? 'دخول' : (language === 'en' ? 'Open' : 'Ouvrir')}
                   </span>
                 </div>
               </div>
@@ -618,7 +705,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                {isArabic ? 'أهداف المراجعة لليوم' : "Objectifs d'aujourd'hui"}
+                {isArabic ? 'أهداف المراجعة لليوم' : (language === 'en' ? "Today's revision goals" : "Objectifs d'aujourd'hui")}
               </h2>
             </div>
             <button
@@ -626,7 +713,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>{isArabic ? 'إضافة مهمة' : 'Ajouter une tâche'}</span>
+              <span>{isArabic ? 'إضافة مهمة' : (language === 'en' ? 'Add task' : 'Ajouter une tâche')}</span>
             </button>
           </div>
 
@@ -677,7 +764,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 <button
                   onClick={() => deleteTask(task.id)}
                   className="p-1 text-slate-300 hover:text-rose-500 dark:text-slate-600 dark:hover:text-rose-400 transition-colors cursor-pointer shrink-0"
-                  title={isArabic ? 'حذف المهمة' : 'Supprimer'}
+                  title={isArabic ? 'حذف المهمة' : (language === 'en' ? 'Delete' : 'Supprimer')}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -693,28 +780,30 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             onClick={() => onNavigate('ai-assistant')}
             role="button"
             tabIndex={0}
-            className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-[#141d33] dark:to-[#17203b] border border-indigo-200/80 dark:border-indigo-900/60 shadow-2xs hover:border-indigo-400 transition-all cursor-pointer group"
+            className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50/70 to-blue-50/70 dark:from-[#141d33] dark:to-[#17203b] border border-indigo-200/80 dark:border-indigo-900/60 shadow-2xs hover:border-indigo-400 transition-all cursor-pointer group"
           >
-            <div className="flex items-center gap-2.5 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
-                <Sparkles className="w-4 h-4" />
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-indigo-600/90 text-white flex items-center justify-center">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-indigo-950 dark:text-indigo-200">
+                    {isArabic ? 'مساعد EOS BAC AI' : (language === 'en' ? 'EOS BAC AI Assistant' : 'Assistant EOS BAC AI')}
+                  </h3>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-indigo-950 dark:text-indigo-200">
-                  {isArabic ? 'المساعد الذكي لبكالوريا DZ' : 'Assistant IA BAC'}
-                </h3>
-                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider">
-                  {isArabic ? 'إجابات منهجية فورية' : 'Méthode & Corrigés'}
-                </span>
-              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800">
+                {isArabic ? 'قريبًا' : (language === 'en' ? 'Soon' : 'Bientôt')}
+              </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               {isArabic
-                ? 'اطرح أي سؤال حول الدوال، المتابعة الزمنية، المناعة أو المنهجية الرسمية.'
-                : 'Pose tes questions de cours, de méthode ou demande des explications sur-mesure.'}
+                ? 'مساعد الذكاء الاصطناعي قيد التطوير حاليًا وسيكون متاحًا قريبًا لمرافقتكم بشروحات منهجية وتدريبات.'
+                : (language === 'en' ? 'Our AI assistant is currently being prepared. It will be available soon.' : 'Notre assistant IA est actuellement en préparation. Il sera bientôt disponible.')}
             </p>
             <div className="mt-3 flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 group-hover:underline">
-              <span>{isArabic ? 'بدء محادثة' : 'Démarrer'}</span>
+              <span>{isArabic ? 'معاينة الميزة' : (language === 'en' ? 'Learn more' : 'En savoir plus')}</span>
               <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
             </div>
           </div>
@@ -732,17 +821,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  {isArabic ? 'اختبار تقييمي سريع' : 'Quiz & QCM express'}
+                  {isArabic ? 'اختبار تقييمي سريع' : (language === 'en' ? 'Quick Evaluation Quiz' : 'Quiz & QCM express')}
                 </h3>
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">
-                  {isArabic ? '5 دقائق' : '5 minutes'}
+                  {isArabic ? '5 دقائق' : (language === 'en' ? '5 minutes' : '5 minutes')}
                 </span>
               </div>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {isArabic
                 ? 'ثبّت مكتسباتك واكتشف الثغرات قبل امتحانات الفصل.'
-                : 'Teste tes connaissances et vérifie ta maîtrise des concepts clés.'}
+                : (language === 'en' ? 'Test your knowledge and check your mastery of key concepts.' : 'Teste tes connaissances et vérifie ta maîtrise des concepts clés.')}
             </p>
           </div>
         </div>
@@ -757,7 +846,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           >
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                {isArabic ? 'إضافة هدف دراسي جديد' : 'Ajouter un objectif de révision'}
+                {isArabic ? 'إضافة هدف دراسي جديد' : (language === 'en' ? 'Add study goal' : 'Ajouter un objectif de révision')}
               </h3>
               <button
                 onClick={() => setIsAddTaskModalOpen(false)}
@@ -770,14 +859,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <form onSubmit={handleAddTask} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  {isArabic ? 'عنوان الهدف' : 'Intitulé de la tâche'}
+                  {isArabic ? 'عنوان الهدف' : (language === 'en' ? 'Task title' : 'Intitulé de la tâche')}
                 </label>
                 <input
                   type="text"
                   required
                   value={newTaskTitle}
                   onChange={(e) => setNewTaskTitle(e.target.value)}
-                  placeholder={isArabic ? 'مثلاً: حل تمرين الدوال الأسية...' : 'Ex: Résoudre 2 exercices de suites...'}
+                  placeholder={isArabic ? 'مثلاً: حل تمرين الدوال الأسية...' : (language === 'en' ? 'E.g.: Solve 2 sequence exercises...' : 'Ex: Résoudre 2 exercices de suites...')}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs sm:text-sm text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500"
                 />
               </div>
@@ -785,7 +874,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    {isArabic ? 'المادة' : 'Matière'}
+                    {isArabic ? 'المادة' : (language === 'en' ? 'Subject' : 'Matière')}
                   </label>
                   <select
                     value={newTaskSubject}
@@ -802,7 +891,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    {isArabic ? 'المدة التقديرية' : 'Durée estimée'}
+                    {isArabic ? 'المدة التقديرية' : (language === 'en' ? 'Estimated duration' : 'Durée estimée')}
                   </label>
                   <input
                     type="text"
@@ -821,13 +910,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   onClick={() => setIsAddTaskModalOpen(false)}
                   className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                 >
-                  {isArabic ? 'إلغاء' : 'Annuler'}
+                  {isArabic ? 'إلغاء' : (language === 'en' ? 'Cancel' : 'Annuler')}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer shadow-xs"
                 >
-                  {isArabic ? 'حفظ المهمة' : 'Enregistrer'}
+                  {isArabic ? 'حفظ المهمة' : (language === 'en' ? 'Save' : 'Enregistrer')}
                 </button>
               </div>
             </form>

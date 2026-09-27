@@ -222,12 +222,12 @@ const ContentContext = createContext<ContentContextType | undefined>(undefined);
 
 export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentStream, setCurrentStream] = useState<StreamType>(() => {
-    const saved = localStorage.getItem('bacnext_stream');
+    const saved = localStorage.getItem('eosbac_stream') || localStorage.getItem('bacnext_stream');
     return (saved as StreamType) || 'sciences_experimentales';
   });
 
   const [role, setRole] = useState<'student' | 'admin'>(() => {
-    const saved = localStorage.getItem('bacnext_role');
+    const saved = localStorage.getItem('eosbac_role') || localStorage.getItem('bacnext_role');
     return (saved as 'student' | 'admin') || 'student';
   });
 
@@ -235,43 +235,43 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Chapters: starts empty so student sees clean empty state
   const [chapters, setChapters] = useState<Chapter[]>(() => {
-    const saved = localStorage.getItem('bacnext_chapters');
+    const saved = localStorage.getItem('eosbac_chapters') || localStorage.getItem('bacnext_chapters');
     return saved ? JSON.parse(saved) : [];
   });
 
   // Lessons: starts empty so student sees clean empty state
   const [lessons, setLessons] = useState<Lesson[]>(() => {
-    const saved = localStorage.getItem('bacnext_lessons');
+    const saved = localStorage.getItem('eosbac_lessons') || localStorage.getItem('bacnext_lessons');
     return saved ? JSON.parse(saved) : [];
   });
 
   // Exercises: starts empty so student sees clean empty state
   const [exercises, setExercises] = useState<Exercise[]>(() => {
-    const saved = localStorage.getItem('bacnext_exercises');
+    const saved = localStorage.getItem('eosbac_exercises') || localStorage.getItem('bacnext_exercises');
     return saved ? JSON.parse(saved) : [];
   });
 
   // Summaries: starts empty so student sees clean empty state
   const [summaries, setSummaries] = useState<Summary[]>(() => {
-    const saved = localStorage.getItem('bacnext_summaries');
+    const saved = localStorage.getItem('eosbac_summaries') || localStorage.getItem('bacnext_summaries');
     return saved ? JSON.parse(saved) : [];
   });
 
   // BAC Exams: starts empty so student sees clean empty state
   const [bacExams, setBacExams] = useState<BacExam[]>(() => {
-    const saved = localStorage.getItem('bacnext_bacExams');
+    const saved = localStorage.getItem('eosbac_bacExams') || localStorage.getItem('bacnext_bacExams');
     return saved ? JSON.parse(saved) : [];
   });
 
   // Quizzes: starts empty so student sees clean empty state
   const [quizzes, setQuizzes] = useState<QuizItem[]>(() => {
-    const saved = localStorage.getItem('bacnext_quizzes');
+    const saved = localStorage.getItem('eosbac_quizzes') || localStorage.getItem('bacnext_quizzes');
     return saved ? JSON.parse(saved) : [];
   });
 
   // Tasks
   const [tasks, setTasks] = useState<Task[]>(() => {
-    const saved = localStorage.getItem('bacnext_tasks');
+    const saved = localStorage.getItem('eosbac_tasks') || localStorage.getItem('bacnext_tasks');
     return saved ? JSON.parse(saved) : INITIAL_TASKS;
   });
 
@@ -287,39 +287,55 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Sync to localStorage
   useEffect(() => {
+    localStorage.setItem('eosbac_stream', currentStream);
     localStorage.setItem('bacnext_stream', currentStream);
   }, [currentStream]);
 
   useEffect(() => {
+    localStorage.setItem('eosbac_role', role);
     localStorage.setItem('bacnext_role', role);
   }, [role]);
 
   useEffect(() => {
-    localStorage.setItem('bacnext_chapters', JSON.stringify(chapters));
+    const val = JSON.stringify(chapters);
+    localStorage.setItem('eosbac_chapters', val);
+    localStorage.setItem('bacnext_chapters', val);
   }, [chapters]);
 
   useEffect(() => {
-    localStorage.setItem('bacnext_lessons', JSON.stringify(lessons));
+    const val = JSON.stringify(lessons);
+    localStorage.setItem('eosbac_lessons', val);
+    localStorage.setItem('bacnext_lessons', val);
   }, [lessons]);
 
   useEffect(() => {
-    localStorage.setItem('bacnext_exercises', JSON.stringify(exercises));
+    const val = JSON.stringify(exercises);
+    localStorage.setItem('eosbac_exercises', val);
+    localStorage.setItem('bacnext_exercises', val);
   }, [exercises]);
 
   useEffect(() => {
-    localStorage.setItem('bacnext_summaries', JSON.stringify(summaries));
+    const val = JSON.stringify(summaries);
+    localStorage.setItem('eosbac_summaries', val);
+    localStorage.setItem('bacnext_summaries', val);
   }, [summaries]);
 
   useEffect(() => {
-    localStorage.setItem('bacnext_bacExams', JSON.stringify(bacExams));
+    const val = JSON.stringify(bacExams);
+    localStorage.setItem('eosbac_bacExams', val);
+    localStorage.setItem('bacnext_bacExams', val);
   }, [bacExams]);
 
   useEffect(() => {
-    localStorage.setItem('bacnext_quizzes', JSON.stringify(quizzes));
+    const val = JSON.stringify(quizzes);
+    localStorage.setItem('eosbac_quizzes', val);
+    localStorage.setItem('bacnext_quizzes', val);
   }, [quizzes]);
 
   useEffect(() => {
-    localStorage.setItem('bacnext_tasks', JSON.stringify(tasks));
+    const val = JSON.stringify(tasks);
+    localStorage.setItem('eosbac_tasks', val);
+    localStorage.setItem('bacnext_tasks', val);
   }, [tasks]);
 
   // Chapter CRUD

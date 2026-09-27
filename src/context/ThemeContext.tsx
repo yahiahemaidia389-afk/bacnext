@@ -14,7 +14,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
     try {
-      const saved = localStorage.getItem('bacnext_theme');
+      const saved = localStorage.getItem('eosbac_theme') || localStorage.getItem('bacnext_theme');
       if (saved === 'dark' || saved === 'light') {
         return saved;
       }
@@ -30,6 +30,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Apply theme to DOM and keep localStorage updated
   useEffect(() => {
     try {
+      localStorage.setItem('eosbac_theme', theme);
       localStorage.setItem('bacnext_theme', theme);
     } catch {}
 

@@ -4,6 +4,7 @@ export type UserRole = 'student' | 'admin';
 export type ViewType = 
   | 'landing' 
   | 'login'
+  | 'reset-password'
   | 'dashboard' 
   | 'subjects' 
   | 'subject-detail' 
@@ -16,7 +17,8 @@ export type ViewType =
   | 'planner' 
   | 'ai-assistant' 
   | 'profile'
-  | 'admin';
+  | 'admin'
+  | 'admin-users';
 
 export type AdminTabType = 
   | 'dashboard' 
@@ -38,8 +40,13 @@ export interface UserAccount {
   stream: StreamType;
   language: 'fr' | 'en' | 'ar';
   avatar_url?: string;
+  dream?: string;
+  goal?: string;
+  target_score?: string;
+  study_focus?: string;
+  onboarding_completed?: boolean;
+  email_verified?: boolean;
   created_at: string;
-  password?: string;
 }
 
 export interface Subject {
@@ -193,6 +200,11 @@ export interface UserProfile {
   daysToBac: number;
   currentStream: StreamType;
   avatar?: string;
+  dream?: string;
+  goal?: string;
+  targetScore?: string;
+  studyFocus?: string;
+  onboardingCompleted?: boolean;
   level?: number;
   currentXp?: number;
   nextLevelXp?: number;
